@@ -8,61 +8,99 @@ function FeedBackForm() {
     feedbackType: "bug",
     customType: "",
     message: "",
-    screenshot: null,
+    screenshots: [],
   });
 
-  const [showEmail, setShowEmail] = useState(false); 
-  const [loading, setLoading] = useState(false); // NEW state
+  const [showEmail, setShowEmail] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [previews, setPreviews] = useState([]);
+  const [imgError, setImgError] = useState("");
+  const [emailError, setEmailError] = useState("");
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (files) {
-      setFormData((prev) => ({ ...prev, [name]: files[0] }));
+    if (name === "screenshot") {
+      let selectedFiles = Array.from(files);
+      let currentFiles = formData.screenshots || [];
+      let allFiles = [...currentFiles, ...selectedFiles];
+
+      if (allFiles.length > 5) {
+        setImgError("Vous pouvez sélectionner jusqu'à 5 images maximum.");
+        allFiles = allFiles.slice(0, 5);
+      } else {
+        setImgError("");
+      }
+
+      setFormData((prev) => ({ ...prev, screenshots: allFiles }));
+      setPreviews(allFiles.map((file) => URL.createObjectURL(file)));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
+      if (name === "email") setEmailError("");
     }
+  };
+
+  const validateEmail = (email) => {
+    // Simple regex for email validation
+    return /\S+@\S+\.\S+/.test(email);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // start loading
+
+    // Si l'email n'est pas affiché, on alerte puis on l'affiche et on bloque la soumission
+    if (!showEmail) {
+      alert("Veuillez renseigner votre email pour valider votre feedback.");
+      setShowEmail(true);
+      return;
+    }
+
+    // Si l'email est affiché mais vide or invalide, on bloque la soumission
+    if (!formData.email || !validateEmail(formData.email)) {
+      setEmailError("Veuillez entrer un email valide.");
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const data = new FormData();
       data.append("name", formData.name);
-      if (showEmail) data.append("email", formData.email);
+      data.append("email", formData.email);
       data.append(
         "feedbackType",
-        formData.feedbackType === "other" ? formData.customType : formData.feedbackType
+        formData.feedbackType === "other"
+          ? formData.customType
+          : formData.feedbackType
       );
       data.append("message", formData.message);
-      if (formData.screenshot) {
-        data.append("screenshot", formData.screenshot);
-      }
+      formData.screenshots.forEach((file) => {
+        data.append("screenshots", file);
+      });
 
-      const res = await axios.post(
+      await axios.post(
         "http://localhost:3000/api/auth/registerFeedback",
         data,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
 
       alert("✅ Feedback submitted successfully!");
-      console.log(res.data);
-
       setFormData({
         name: "",
         email: "",
         feedbackType: "bug",
         customType: "",
         message: "",
-        screenshot: null,
+        screenshots: [],
       });
       setShowEmail(false);
+      setPreviews([]);
+      setImgError("");
+      setEmailError("");
     } catch (error) {
       console.error("Error submitting feedback:", error);
       alert("❌ Error submitting feedback. Please try again.");
     } finally {
-      setLoading(false); // stop loading
+      setLoading(false);
     }
   };
 
@@ -136,50 +174,114 @@ function FeedBackForm() {
               onChange={handleChange}
               required
               placeholder="Please describe your feedback in detail"
-              onFocus={() => setShowEmail(true)}
               disabled={loading}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-indigo-400 outline-none resize-none transition h-28 disabled:opacity-50"
             />
           </div>
 
-          {/* Email */}
+          {/* Email (affiché seulement après clic sur submit) */}
           {showEmail && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email (optional)
+                Email *
               </label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
+                required
                 disabled={loading}
-                placeholder="Your.email@example.com"
+                placeholder="Votre.email@example.com"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-indigo-400 outline-none transition disabled:opacity-50"
               />
+              {emailError && (
+                <div className="text-red-500 text-sm mt-1">{emailError}</div>
+              )}
             </div>
           )}
 
-          {/* Screenshot */}
+          {/* Screenshots */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Attach a Screenshot
+              Ajouter jusqu'à 5 images
             </label>
-            <input
-              type="file"
-              name="screenshot"
-              accept="image/*"
-              onChange={handleChange}
-              disabled={loading}
-              className="w-full text-sm text-gray-500 border border-gray-300 rounded-lg px-3 py-2 disabled:opacity-50"
-            />
+            <div className="flex items-center gap-3">
+              <label
+                htmlFor="screenshot-upload"
+                className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg cursor-pointer hover:bg-indigo-700 hover:scale-105 transition-all shadow-sm"
+                tabIndex={0}
+              >
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12"
+                  />
+                </svg>
+                Ajouter des images
+              </label>
+              <input
+                id="screenshot-upload"
+                type="file"
+                name="screenshot"
+                accept="image/*"
+                multiple
+                onChange={handleChange}
+                disabled={loading}
+                className="hidden"
+              />
+              <span className="text-xs text-gray-500">
+                {formData.screenshots.length}/5 sélectionnées
+              </span>
+            </div>
+            <div className="text-xs text-gray-400 mt-1">
+              Formats acceptés: jpg, png, gif, webp. Taille max: 5 Mo/image.
+            </div>
+            {imgError && (
+              <div className="text-red-500 text-sm mt-2">{imgError}</div>
+            )}
+            {previews.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-3 justify-center bg-gray-50 p-3 rounded-lg border border-dashed border-gray-300">
+                {previews.map((src, idx) => (
+                  <div key={idx} className="relative group">
+                    <img
+                      src={src}
+                      alt={`Preview ${idx + 1}`}
+                      className="h-16 w-16 object-cover rounded-lg border border-gray-300 shadow"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newScreenshots = [...formData.screenshots];
+                        const newPreviews = [...previews];
+                        newScreenshots.splice(idx, 1);
+                        newPreviews.splice(idx, 1);
+                        setFormData((prev) => ({ ...prev, screenshots: newScreenshots }));
+                        setPreviews(newPreviews);
+                      }}
+                      className="absolute -top-2 -right-2 bg-gray-200 text-black rounded-full w-6 h-6 flex items-center justify-center text-base p-0 hover:bg-red-500 hover:text-white transition"
+                      aria-label="Supprimer cette image"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow transition disabled:opacity-60 flex items-center justify-center gap-2"
+            className="w-full py-3 bg-black hover:bg-gray-800 text-white font-semibold rounded-xl shadow transition disabled:opacity-60 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>

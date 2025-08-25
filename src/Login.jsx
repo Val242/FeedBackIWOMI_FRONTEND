@@ -1,160 +1,321 @@
 // Login.jsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 export default function Login() {
-  const [role, setRole] = useState("");
-  const [name, setName] = useState("");
+  const [role, setRole] = useState("admin");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const navigate = useNavigate();
+  const [error, setError] = useState("");
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
     setIsLoading(true);
+    let endpoint = "";
+    let payload = {};
+
+    if (role === "admin") {
+      endpoint = "http://localhost:3000/api/auth/adminlogin";
+      payload = { name: email, password };
+    } else {
+      endpoint = "http://localhost:3000/api/auth/collaboratorlogin";
+      payload = { email, password };
+    }
 
     try {
-      // Choose endpoint dynamically based on role
-      const endpoint =
-        role === "admin"
-          ? "http://localhost:3000/api/auth/adminlogin"
-          : "http://localhost:3000/api/auth/collaboratorlogin";
+      const response = await axios.post(endpoint, payload);
+      const { token, role: userRole, name } = response.data;
 
-      const response = await axios.post(endpoint, { name, password });
-
-      const { token, role: userRole } = response.data;
-
-      // Store token and user info in localStorage
       localStorage.setItem(
         "currentUser",
-        JSON.stringify({ token, role: userRole, name })
+        JSON.stringify({ token, role: userRole, name: name || email, email })
       );
 
-      // Redirect based on role
       if (userRole === "admin") {
-        navigate("/admin");
-      } else if (userRole === "developer") {
-        navigate("/collaborator");
+        window.location.hash = "#/admin";
+      } else {
+        window.location.hash = "#/collaborator";
       }
-      console.log(userRole);
     } catch (err) {
-      console.error(err);
       setError(err.response?.data?.message || "Erreur de connexion au serveur");
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Responsive
+  const isMobile = window.innerWidth < 700;
+
   return (
-    <div className="w-[900px] flex bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-      {/* Left side: Branding */}
-      <div className="flex-1 p-12 bg-gradient-to-br from-indigo-700 via-indigo-800 to-slate-900 text-white flex flex-col justify-center items-center text-center relative overflow-hidden">
-        {/* Decorative circles */}
-        <div className="absolute -top-16 -right-16 w-56 h-56 bg-blue-500/20 rounded-full blur-2xl" />
-        <div className="absolute -bottom-16 -left-16 w-40 h-40 bg-emerald-500/20 rounded-full blur-xl" />
-
-        <div className="relative z-10 max-w-[300px]">
-          <div className="mb-12">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-800 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/40">
-              <span className="text-4xl">💬</span>
-            </div>
-
-            <h1 className="text-4xl font-extrabold mb-3 leading-tight bg-gradient-to-br from-white to-slate-200 bg-clip-text text-transparent">
-              Feedback Hub
-            </h1>
-            <p className="text-lg opacity-90">Plateforme collaborative</p>
+    <div
+      style={{
+        width: isMobile ? "95vw" : 400,
+        maxWidth: 400,
+        background: "#fff",
+        borderRadius: 16,
+        boxShadow:
+          "0 6px 32px 0 rgba(59,130,246,0.10), 0 1.5px 6px 0 rgba(0,0,0,0.04)",
+        border: "1px solid #e0e7ef",
+        padding: isMobile ? 24 : 40,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      }}
+    >
+      <div style={{ marginBottom: 32, textAlign: "center" }}>
+        <h2
+          style={{
+            fontSize: 28,
+            fontWeight: 800,
+            color: "#1e293b",
+            marginBottom: 8,
+            letterSpacing: 0.5,
+          }}
+        >
+          Feedback Hub
+        </h2>
+        <p style={{ color: "#64748b", fontSize: 16, marginBottom: 8 }}>
+          Plateforme collaborative
+        </p>
+        <h3
+          style={{
+            fontSize: 20,
+            fontWeight: 700,
+            color: "#1e293b",
+            marginBottom: 4,
+          }}
+        >
+          Connexion
+        </h3>
+        <p style={{ color: "#64748b", fontSize: 15 }}>
+          Accédez à votre espace de travail
+        </p>
+      </div>
+      <form onSubmit={handleLogin} autoComplete="off">
+        <div style={{ marginBottom: 20 }}>
+          <label
+            style={{
+              display: "block",
+              fontSize: 14,
+              fontWeight: 600,
+              color: "#374151",
+              marginBottom: 8,
+            }}
+          >
+            Rôle
+          </label>
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              background: "#f1f5f9",
+              padding: 4,
+              borderRadius: 8,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setRole("admin")}
+              style={{
+                flex: 1,
+                padding: "12px 0",
+                background: role === "admin" ? "#3b82f6" : "transparent",
+                color: role === "admin" ? "white" : "#64748b",
+                border: "none",
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: "pointer",
+                transition: "all 0.2s",
+                boxShadow:
+                  role === "admin"
+                    ? "0 2px 8px rgba(59,130,246,0.10)"
+                    : "none",
+              }}
+              onMouseEnter={(e) => {
+                if (role !== "admin") e.target.style.background = "#e0e7ef";
+              }}
+              onMouseLeave={(e) => {
+                if (role !== "admin") e.target.style.background = "transparent";
+              }}
+            >
+              Administrateur
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole("collaborator")}
+              style={{
+                flex: 1,
+                padding: "12px 0",
+                background: role === "collaborator" ? "#3b82f6" : "transparent",
+                color: role === "collaborator" ? "white" : "#64748b",
+                border: "none",
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: "pointer",
+                transition: "all 0.2s",
+                boxShadow:
+                  role === "collaborator"
+                    ? "0 2px 8px rgba(59,130,246,0.10)"
+                    : "none",
+              }}
+              onMouseEnter={(e) => {
+                if (role !== "collaborator") e.target.style.background = "#e0e7ef";
+              }}
+              onMouseLeave={(e) => {
+                if (role !== "collaborator") e.target.style.background = "transparent";
+              }}
+            >
+              Collaborateur
+            </button>
           </div>
         </div>
-      </div>
-
-      {/* Right side: Login Form */}
-      <div className="flex-1 p-12 flex flex-col justify-center">
-        <h2 className="text-2xl font-bold text-slate-800 mb-6">Connexion</h2>
-
-        <form onSubmit={handleLogin} className="space-y-5">
-          {/* Role Selector */}
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Role
-            </label>
-            <div className="flex gap-2 bg-slate-100 p-1 rounded-lg">
-              <button
-                type="button"
-                onClick={() => setRole("admin")}
-                className={`flex-1 py-3 rounded-md font-medium text-sm transition ${
-                  role === "admin"
-                    ? "bg-blue-500 text-white shadow"
-                    : "text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole("developer")}
-                className={`flex-1 py-3 rounded-md font-medium text-sm transition ${
-                  role === "developer"
-                    ? "bg-blue-500 text-white shadow"
-                    : "text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                Collaborator
-              </button>
-            </div>
-          </div>
-
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Name
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your Name"
-              className="w-full py-3 px-4 border border-slate-300 rounded-lg text-sm focus:border-blue-500 outline-none transition"
-            />
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full py-3 px-4 border border-slate-300 rounded-lg text-sm focus:border-blue-500 outline-none transition"
-            />
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="text-red-500 text-sm bg-red-50 border border-red-200 rounded p-2">
-              {error}
-            </div>
-          )}
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full py-3 rounded-lg font-semibold text-white transition ${
-              isLoading
-                ? "bg-slate-400 cursor-not-allowed"
-                : "bg-blue-500 hover:bg-blue-600 shadow"
-            }`}
+        <div style={{ marginBottom: 16 }}>
+          <label
+            style={{
+              display: "block",
+              fontSize: 14,
+              fontWeight: 600,
+              color: "#374151",
+              marginBottom: 8,
+            }}
           >
-            {isLoading ? "Connexion..." : "Se connecter"}
-          </button>
-        </form>
-      </div>
+            Email
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="votre@email.com"
+            style={{
+              width: "100%",
+              padding: "12px 16px",
+              border: "1.5px solid #d1d5db",
+              borderRadius: 8,
+              fontSize: 15,
+              transition: "border-color 0.2s, box-shadow 0.2s",
+              boxSizing: "border-box",
+              outline: "none",
+              background: "#f9fafb",
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = "#3b82f6";
+              e.target.style.boxShadow = "0 0 0 2px #dbeafe";
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = "#d1d5db";
+              e.target.style.boxShadow = "none";
+            }}
+            required
+          />
+        </div>
+        <div style={{ marginBottom: 24 }}>
+          <label
+            style={{
+              display: "block",
+              fontSize: 14,
+              fontWeight: 600,
+              color: "#374151",
+              marginBottom: 8,
+            }}
+          >
+            Mot de passe
+          </label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="mot de passe"
+            style={{
+              width: "100%",
+              padding: "12px 16px",
+              border: "1.5px solid #d1d5db",
+              borderRadius: 8,
+              fontSize: 15,
+              transition: "border-color 0.2s, box-shadow 0.2s",
+              boxSizing: "border-box",
+              outline: "none",
+              background: "#f9fafb",
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = "#3b82f6";
+              e.target.style.boxShadow = "0 0 0 2px #dbeafe";
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = "#d1d5db";
+              e.target.style.boxShadow = "none";
+            }}
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={isLoading}
+          style={{
+            width: "100%",
+            padding: "14px 0",
+            background: isLoading
+              ? "#9ca3af"
+              : "linear-gradient(90deg,#3b82f6,#2563eb)",
+            color: "white",
+            border: "none",
+            borderRadius: 8,
+            fontSize: 16,
+            fontWeight: 700,
+            cursor: isLoading ? "not-allowed" : "pointer",
+            transition: "background 0.2s",
+            boxShadow: "0 2px 8px rgba(59,130,246,0.08)",
+            letterSpacing: 0.5,
+          }}
+          onMouseEnter={(e) => {
+            if (!isLoading) {
+              e.target.style.background =
+                "linear-gradient(90deg,#2563eb,#1e40af)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isLoading) {
+              e.target.style.background =
+                "linear-gradient(90deg,#3b82f6,#2563eb)";
+            }
+          }}
+        >
+          {isLoading ? "Connexion..." : "Se connecter"}
+        </button>
+      </form>
+      {error && (
+        <div
+          style={{
+            marginTop: 24,
+            padding: "14px 28px",
+            background: "#fee2e2",
+            border: "1.5px solid #fca5a5",
+            borderRadius: 10,
+            color: "#b91c1c",
+            fontSize: 15,
+            fontWeight: 600,
+            boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+            animation: "fadeInDown 0.5s",
+            textAlign: "center",
+          }}
+        >
+          {error}
+        </div>
+      )}
+      {/* Animation keyframes */}
+      <style>
+        {`
+          @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px);}
+            to { opacity: 1; transform: translateY(0);}
+          }
+        `}
+      </style>
     </div>
   );
 }
