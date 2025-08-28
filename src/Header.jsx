@@ -1,21 +1,11 @@
 import React, { useState } from "react";
-import FeedBackForm from "./feedBackForm";
 import Login from "./Login";
 import logo from "./assets/chat-2.png";
 
 function Header() {
-  const [showForm, setShowForm] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  
 
-  const toggleForm = () => {
-    setShowForm((prev) => !prev);
-    setShowLogin(false);
-  };
-
-  const toggleLogin = () => {
-    setShowLogin((prev) => !prev);
-    setShowForm(false);
-  };
 
   return (
     <div className="w-full">
@@ -36,15 +26,15 @@ function Header() {
           </div>
           <div
             className="cursor-pointer text-gray-700 hover:text-black transition"
-            onClick={toggleForm}
+            
           >
             Submit Feedback
           </div>
           <div
             className="cursor-pointer text-gray-700 hover:text-black transition"
-            onClick={toggleLogin}
+            onClick={() => setShowLogin(true)} // <-- Ouvre le modal Login
           >
-            Connection
+            Sign Up
           </div>
         </div>
       </div>
@@ -52,18 +42,17 @@ function Header() {
       {/* Login Modal */}
       {showLogin && (
         <div className="fixed inset-0 flex justify-center items-center bg-black/40 backdrop-blur-sm z-50">
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 relative">
+          <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg p-8 relative flex flex-col items-center">
             {/* Cancel button */}
             <button
-              className="absolute top-3 right-3 text-gray-500 hover:text-black transition"
+              className="w-3 absolute top-6 right-3 text-gray-500 hover:text-black transition"
               onClick={() => setShowLogin(false)}
             >
               ✕
             </button>
-            <h2 className="text-xl font-semibold mb-4 text-center text-gray-800">
-              Admin Login
-            </h2>
-            <Login />
+            <div className="w-full flex justify-center">
+              <Login />
+            </div>
           </div>
         </div>
       )}
@@ -81,31 +70,8 @@ function Header() {
             build a better experience for everyone.
           </p>
 
-          {/* Buttons & Feedback Form */}
-          <div className="flex flex-col sm:flex-row mt-8 justify-center items-center gap-5">
-            {!showForm ? (
-              <button
-                className="bg-black hover:bg-gray-800 text-white w-44 py-3 rounded-xl shadow transition"
-                onClick={toggleForm}
-              >
-                Submit Feedback
-              </button>
-            ) : (
-              <div className="w-full max-w-xl bg-white p-6 rounded-2xl shadow-lg text-left relative">
-                <FeedBackForm />
-                <button
-                  className="absolute top-3 right-3 bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded-full transition"
-                  onClick={toggleForm}
-                >
-                  ✕
-                </button>
-              </div>
-            )}
+          
 
-            <button className="bg-white text-gray-800 w-44 py-3 rounded-xl border border-gray-300 hover:bg-gray-200 transition shadow-sm">
-              View Status
-            </button>
-          </div>
         </div>
       </div>
     </div>
