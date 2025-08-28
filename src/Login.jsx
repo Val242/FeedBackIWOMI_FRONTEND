@@ -4,8 +4,8 @@ import axios from "axios";
 
 export default function Login() {
   const [role, setRole] = useState("admin");
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -18,19 +18,19 @@ export default function Login() {
 
     if (role === "admin") {
       endpoint = "http://localhost:3000/api/auth/adminlogin";
-      payload = { name: email, password };
+      payload = { name, password };
     } else {
       endpoint = "http://localhost:3000/api/auth/collaboratorlogin";
-      payload = { email, password };
+      payload = { name, password };
     }
 
     try {
       const response = await axios.post(endpoint, payload);
-      const { token, role: userRole, name } = response.data;
+      const { token, role: userRole, name: userName } = response.data;
 
       localStorage.setItem(
         "currentUser",
-        JSON.stringify({ token, role: userRole, name: name || email, email })
+        JSON.stringify({ token, role: userRole, name: userName || name })
       );
 
       if (userRole === "admin") {
@@ -123,7 +123,7 @@ export default function Login() {
               style={{
                 flex: 1,
                 padding: "12px 0",
-                background: role === "admin" ? "#3b82f6" : "transparent",
+                background: role === "admin" ? "#000" : "transparent",
                 color: role === "admin" ? "white" : "#64748b",
                 border: "none",
                 borderRadius: 6,
@@ -151,7 +151,7 @@ export default function Login() {
               style={{
                 flex: 1,
                 padding: "12px 0",
-                background: role === "collaborator" ? "#3b82f6" : "transparent",
+                background: role === "collaborator" ? "#000" : "transparent",
                 color: role === "collaborator" ? "white" : "#64748b",
                 border: "none",
                 borderRadius: 6,
@@ -185,13 +185,13 @@ export default function Login() {
               marginBottom: 8,
             }}
           >
-            Email
+            Nom
           </label>
           <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="votre@email.com"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Votre nom"
             style={{
               width: "100%",
               padding: "12px 16px",
@@ -204,7 +204,7 @@ export default function Login() {
               background: "#f9fafb",
             }}
             onFocus={(e) => {
-              e.target.style.borderColor = "#3b82f6";
+              e.target.style.borderColor = "#000";
               e.target.style.boxShadow = "0 0 0 2px #dbeafe";
             }}
             onBlur={(e) => {
@@ -243,7 +243,7 @@ export default function Login() {
               background: "#f9fafb",
             }}
             onFocus={(e) => {
-              e.target.style.borderColor = "#3b82f6";
+              e.target.style.borderColor = "#000";
               e.target.style.boxShadow = "0 0 0 2px #dbeafe";
             }}
             onBlur={(e) => {
@@ -261,7 +261,7 @@ export default function Login() {
             padding: "14px 0",
             background: isLoading
               ? "#9ca3af"
-              : "linear-gradient(90deg,#3b82f6,#2563eb)",
+              : "#000",
             color: "white",
             border: "none",
             borderRadius: 8,
@@ -275,13 +275,13 @@ export default function Login() {
           onMouseEnter={(e) => {
             if (!isLoading) {
               e.target.style.background =
-                "linear-gradient(90deg,#2563eb,#1e40af)";
+                "#000";
             }
           }}
           onMouseLeave={(e) => {
             if (!isLoading) {
               e.target.style.background =
-                "linear-gradient(90deg,#3b82f6,#2563eb)";
+                "#000";
             }
           }}
         >

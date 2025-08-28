@@ -42,15 +42,17 @@ function Header() {
       {/* Login Modal */}
       {showLogin && (
         <div className="fixed inset-0 flex justify-center items-center bg-black/40 backdrop-blur-sm z-50">
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 relative">
+          <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg p-8 relative flex flex-col items-center">
             {/* Cancel button */}
             <button
-              className="absolute top-3 right-3 text-gray-500 hover:text-black transition"
+              className="w-3 absolute top-6 right-3 text-gray-500 hover:text-black transition"
               onClick={() => setShowLogin(false)}
             >
               ✕
             </button>
-            <Login />
+            <div className="w-full flex justify-center">
+              <Login />
+            </div>
           </div>
         </div>
       )}
