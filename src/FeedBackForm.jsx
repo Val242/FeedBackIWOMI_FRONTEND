@@ -8,61 +8,93 @@ function FeedBackForm() {
     feedbackType: "bug",
     customType: "",
     message: "",
-    screenshot: null,
+    image: [], // changed from screenshots
+    criticality: "low",
   });
 
-  const [showEmail, setShowEmail] = useState(false); 
-  const [loading, setLoading] = useState(false); // NEW state
+  const [showEmail, setShowEmail] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [previews, setPreviews] = useState([]);
+  const [imgError, setImgError] = useState("");
+  const [emailError, setEmailError] = useState("");
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (files) {
-      setFormData((prev) => ({ ...prev, [name]: files[0] }));
+
+    if (name === "image") {
+      let selectedFiles = Array.from(files);
+      let allFiles = [...(formData.image || []), ...selectedFiles];
+
+      if (allFiles.length > 5) {
+        setImgError("You can select up to 5 images only.");
+        allFiles = allFiles.slice(0, 5);
+      } else setImgError("");
+
+      setFormData((prev) => ({ ...prev, image: allFiles }));
+      setPreviews(allFiles.map((file) => URL.createObjectURL(file)));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
+      if (name === "email") setEmailError("");
     }
   };
 
+  const validateEmail = (email) => /\S+@\S+\.\S+/.test(email);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // start loading
+
+    if (!showEmail) {
+      alert("Please enter your email to submit feedback.");
+      setShowEmail(true);
+      return;
+    }
+
+    if (!formData.email || !validateEmail(formData.email)) {
+      setEmailError("Please enter a valid email.");
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const data = new FormData();
       data.append("name", formData.name);
-      if (showEmail) data.append("email", formData.email);
+      data.append("email", formData.email);
       data.append(
-        "feedbackType",
+        "type",
         formData.feedbackType === "other" ? formData.customType : formData.feedbackType
       );
       data.append("message", formData.message);
-      if (formData.screenshot) {
-        data.append("screenshot", formData.screenshot);
-      }
+      data.append("criticality", formData.criticality);
 
-      const res = await axios.post(
-        "http://localhost:3000/api/auth/registerFeedback",
-        data,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+      // Append images
+      formData.image.forEach((file) => {
+        data.append("image", file);
+      });
+
+      await axios.post("http://localhost:3000/api/auth/registerFeedback", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       alert("✅ Feedback submitted successfully!");
-      console.log(res.data);
-
       setFormData({
         name: "",
         email: "",
         feedbackType: "bug",
         customType: "",
         message: "",
-        screenshot: null,
+        image: [],
+        criticality: "low",
       });
       setShowEmail(false);
+      setPreviews([]);
+      setImgError("");
+      setEmailError("");
     } catch (error) {
       console.error("Error submitting feedback:", error);
       alert("❌ Error submitting feedback. Please try again.");
     } finally {
-      setLoading(false); // stop loading
+      setLoading(false);
     }
   };
 
@@ -73,7 +105,7 @@ function FeedBackForm() {
           Submit Your Feedback
         </h2>
         <p className="text-gray-600 text-center mb-6">
-          Help us improve by sharing your thoughts, suggestions, or reporting issues.
+          Help us improve by sharing your thoughts or reporting issues.
         </p>
 
         <form onSubmit={handleSubmit} className="grid gap-5">
@@ -89,7 +121,7 @@ function FeedBackForm() {
               onChange={handleChange}
               placeholder="Your name"
               disabled={loading}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-indigo-400 outline-none transition disabled:opacity-50"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none disabled:opacity-50"
             />
           </div>
 
@@ -103,7 +135,7 @@ function FeedBackForm() {
               value={formData.feedbackType}
               onChange={handleChange}
               disabled={loading}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-indigo-400 outline-none transition disabled:opacity-50"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none disabled:opacity-50"
             >
               <option value="bug">Bug Report</option>
               <option value="feature">Feature Request</option>
@@ -120,9 +152,40 @@ function FeedBackForm() {
                 onChange={handleChange}
                 disabled={loading}
                 placeholder="Enter custom category"
-                className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-indigo-400 outline-none transition disabled:opacity-50"
+                className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none disabled:opacity-50"
               />
             )}
+          </div>
+
+          {/* Criticality with emoji buttons */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Criticality *
+            </label>
+            <div className="flex gap-3 justify-between">
+              {[ 
+                { value: "low", label: "Low 🟢" },
+                { value: "average", label: "Medium 🟡" },
+                { value: "high", label: "High 🟠" },
+                { value: "blocking", label: "Blocking 🔴" },
+              ].map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  className={`flex-1 px-3 py-2 rounded-lg border transition font-medium ${
+                    formData.criticality === item.value
+                      ? "bg-indigo-200 border-indigo-400 ring-2 ring-indigo-300"
+                      : "bg-white border-gray-300 hover:bg-gray-100"
+                  }`}
+                  onClick={() =>
+                    setFormData((prev) => ({ ...prev, criticality: item.value }))
+                  }
+                  disabled={loading}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Message */}
@@ -136,9 +199,8 @@ function FeedBackForm() {
               onChange={handleChange}
               required
               placeholder="Please describe your feedback in detail"
-              onFocus={() => setShowEmail(true)}
               disabled={loading}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-indigo-400 outline-none resize-none transition h-28 disabled:opacity-50"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-indigo-400 outline-none disabled:opacity-50 h-28"
             />
           </div>
 
@@ -146,68 +208,53 @@ function FeedBackForm() {
           {showEmail && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email (optional)
+                Email *
               </label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
+                required
                 disabled={loading}
                 placeholder="Your.email@example.com"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-indigo-400 outline-none transition disabled:opacity-50"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none disabled:opacity-50"
               />
+              {emailError && <div className="text-red-500 text-sm mt-1">{emailError}</div>}
             </div>
           )}
 
-          {/* Screenshot */}
+          {/* Image */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Attach a Screenshot
+              Add up to 5 images
             </label>
             <input
               type="file"
-              name="screenshot"
+              name="image"
               accept="image/*"
               onChange={handleChange}
               disabled={loading}
-              className="w-full text-sm text-gray-500 border border-gray-300 rounded-lg px-3 py-2 disabled:opacity-50"
+              multiple
+              className="block"
             />
+            {imgError && <div className="text-red-500 text-sm mt-1">{imgError}</div>}
+            {previews.length > 0 && (
+              <div className="flex gap-2 mt-2">
+                {previews.map((src, idx) => (
+                  <img key={idx} src={src} alt={`Preview ${idx}`} className="h-16 w-16 object-cover rounded" />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow transition disabled:opacity-60 flex items-center justify-center gap-2"
+            className="w-full py-3 bg-black text-white rounded-xl hover:bg-gray-800 disabled:opacity-60"
           >
-            {loading ? (
-              <>
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v4l3.5-3.5L12 0v4a8 8 0 100 16v-4l-3.5 3.5L12 24v-4a8 8 0 01-8-8z"
-                  ></path>
-                </svg>
-                Submitting...
-              </>
-            ) : (
-              "Submit Feedback"
-            )}
+            {loading ? "Submitting..." : "Submit Feedback"}
           </button>
         </form>
       </div>

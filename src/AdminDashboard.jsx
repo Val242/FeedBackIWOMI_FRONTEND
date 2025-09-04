@@ -1,6 +1,6 @@
 /*
 AdminDashboard.jsx
-Description: Admin dashboard with sidebar, feedbacks, developers list, create developer modal, and assign feedback
+Description: Admin dashboard with sidebar, feedbacks, developers list, create developer modal, and secure logout
 */
 
 import React, { useState, useEffect } from "react";
@@ -12,11 +12,19 @@ const AdminDashboard = () => {
   const [developers, setDevelopers] = useState([]);
   const [loadingFeedbacks, setLoadingFeedbacks] = useState(true);
   const [loadingDevelopers, setLoadingDevelopers] = useState(true);
-  const [activeTab, setActiveTab] = useState("dashboard"); // default tab
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [showCreateModal, setShowCreateModal] = useState(false); 
   const [newDev, setNewDev] = useState({ name: "", email: "", password: "", role: "" });
 
   const token = JSON.parse(localStorage.getItem("currentUser"))?.token;
+
+  // Prevent unauthorized access if no token
+  useEffect(() => {
+    if (!token) {
+      window.location.replace("/#/admin"); // redirect to login
+    }
+  }, [token]);
+
   const toggleSidebar = () => setSidebarCollapsed(!sidebarCollapsed);
 
   // Fetch feedbacks
@@ -95,6 +103,12 @@ const AdminDashboard = () => {
   const unassignedFeedbacks = totalFeedbacks - assignedFeedbacks;
   const totalDevelopers = developers.length;
 
+  // Secure logout
+  const handleLogout = () => {
+    localStorage.removeItem("currentUser");
+    window.location.replace("/#/admin"); // replace history to prevent back
+  };
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
@@ -109,13 +123,20 @@ const AdminDashboard = () => {
           <button onClick={() => setActiveTab("developers")} className="w-full text-left px-4 py-2 rounded hover:bg-gray-200">Developers</button>
           <button className="w-full text-left px-4 py-2 rounded hover:bg-gray-200">Settings</button>
         </nav>
+
+        {/* Sidebar Bottom */}
         <div className="p-4 border-t">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">👤</div>
             {!sidebarCollapsed && (
               <div>
                 <p className="text-sm font-medium">Admin</p>
-                <button className="text-xs text-red-500 underline" onClick={() => { localStorage.removeItem("currentUser"); window.location.reload(); }}>Logout</button>
+                <button
+                  className="text-xs text-red-500 underline"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
               </div>
             )}
           </div>
@@ -233,7 +254,7 @@ const AdminDashboard = () => {
 
       {/* Create Developer Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 flex items-center justify-center">
+        <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="absolute inset-0 backdrop-blur-sm"></div>
           <div className="relative bg-white rounded-lg p-6 w-96 shadow-lg z-10">
             <h2 className="text-xl font-bold mb-4">Create New Developer</h2>
@@ -250,7 +271,6 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

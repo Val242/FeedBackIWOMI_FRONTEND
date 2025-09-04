@@ -2,60 +2,72 @@ import React, { useState, useEffect, useRef } from "react";
 
 export default function CollaboratorDashboard() {
   const [user, setUser] = useState(null);
-  const [summaryStats, setSummaryStats] = useState({
-    total: 0,
-    inProgress: 0,
-    completed: 0,
-    overdue: 0,
-  });
-  const [feedbackList, setFeedbackList] = useState([]);
-  const [feedbackStatus, setFeedbackStatus] = useState({});
-  const [feedbackProgress, setFeedbackProgress] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [notifications, setNotifications] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [currentFilter, setCurrentFilter] = useState("all");
+const [summaryStats, setSummaryStats] = useState({
+  total: 0,
+  inProgress: 0,
+  completed: 0,
+  overdue: 0,
+});
+const [feedbackList, setFeedbackList] = useState([]);
+const [feedbackStatus, setFeedbackStatus] = useState({});
+const [feedbackProgress, setFeedbackProgress] = useState({});
+const [loading, setLoading] = useState(true);
+const [notifications, setNotifications] = useState([]);
+const [showNotifications, setShowNotifications] = useState(false);
+const [unreadCount, setUnreadCount] = useState(0);
+const [currentFilter, setCurrentFilter] = useState("all");
 
-  const notificationsRef = useRef(null);
+const notificationsRef = useRef(null);
 
-  useEffect(() => {
-    const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
-    setUser(currentUser);
+useEffect(() => {
+  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+  setUser(currentUser);
 
-    const fetchFeedbacks = async () => {
-      try {
-        const res = await fetch(`/api/feedbacks/assigned`, {
-          headers: { "Authorization": `Bearer ${currentUser.token}` },
-        });
-        const data = await res.json();
+  const fetchFeedbacks = async () => {
+    setLoading(true);
+    try {
+      const { data } = await axios.get("/api/feedbacks/assigned", {
+        headers: { Authorization: `Bearer ${currentUser.token}` },
+      });
 
-        const statusMap = {};
-        const progressMap = {};
-        data.forEach((f) => {
-          statusMap[f.id] = f.status;
-          progressMap[f.id] = f.progress || 0;
-        });
+      const statusMap = {};
+      const progressMap = {};
+      let total = data.length;
+      let inProgress = 0;
+      let completed = 0;
+      let overdue = 0;
 
-        setFeedbackList(data);
-        setFeedbackStatus(statusMap);
-        setFeedbackProgress(progressMap);
+      data.forEach((feedback) => {
+        statusMap[feedback.id] = feedback.status;
+        progressMap[feedback.id] = feedback.progress || 0;
 
-        const total = data.length;
-        const inProgress = data.filter((f) => f.status === "In Progress").length;
-        const completed = data.filter((f) => f.status === "Completed").length;
-        const overdue = data.filter((f) => f.status === "Overdue").length;
+        switch (feedback.status) {
+          case "In Progress":
+            inProgress++;
+            break;
+          case "Completed":
+            completed++;
+            break;
+          case "Overdue":
+            overdue++;
+            break;
+        }
+      });
 
-        setSummaryStats({ total, inProgress, completed, overdue });
-        setLoading(false);
-      } catch (err) {
-        console.error(err);
-        setLoading(false);
-      }
-    };
+      setFeedbackList(data);
+      setFeedbackStatus(statusMap);
+      setFeedbackProgress(progressMap);
+      setSummaryStats({ total, inProgress, completed, overdue });
+    } catch (err) {
+      console.error("Error fetching feedbacks:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchFeedbacks();
-  }, []);
+  fetchFeedbacks();
+}, []);
+
 
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
