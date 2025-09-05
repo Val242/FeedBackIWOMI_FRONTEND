@@ -118,10 +118,22 @@ const AdminDashboard = () => {
           <button onClick={toggleSidebar}>{sidebarCollapsed ? "→" : "←"}</button>
         </div>
         <nav className="flex-1 px-2 py-4 space-y-2">
-          <button onClick={() => setActiveTab("dashboard")} className="w-full text-left px-4 py-2 rounded hover:bg-gray-200">Dashboard</button>
-          <button onClick={() => setActiveTab("feedback")} className="w-full text-left px-4 py-2 rounded hover:bg-gray-200">Feedback</button>
-          <button onClick={() => setActiveTab("developers")} className="w-full text-left px-4 py-2 rounded hover:bg-gray-200">Developers</button>
-          <button className="w-full text-left px-4 py-2 rounded hover:bg-gray-200">Settings</button>
+          {[
+            { id: "dashboard", label: "Dashboard" },
+            { id: "feedback", label: "Feedback" },
+            { id: "developers", label: "Developers" },
+            { id: "settings", label: "Settings" }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`w-full text-left px-4 py-2 rounded hover:bg-gray-200 ${
+                activeTab === tab.id ? "bg-blue-500 text-white font-semibold" : ""
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </nav>
 
         {/* Sidebar Bottom */}
@@ -175,7 +187,7 @@ const AdminDashboard = () => {
             <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  {["Name","Email","Message","Time","Criticality","Status","Assigned To"].map(head => (
+                  {["Name","Email","Message","Time","Criticality","Status","Assigned To","Image"].map(head => (
                     <th key={head} className="px-6 py-3 text-left text-sm font-semibold text-gray-600 uppercase">{head}</th>
                   ))}
                 </tr>
@@ -189,7 +201,7 @@ const AdminDashboard = () => {
                       <td className="px-6 py-4 text-sm text-gray-800">{fb.email}</td>
                       <td className="px-6 py-4 text-sm text-gray-800">{fb.message}</td>
                       <td className="px-6 py-4 text-sm text-gray-800">{fb.timestamp}</td>
-                       <td className="px-6 py-4 text-sm text-gray-800">{fb.criticality}</td>
+                      <td className="px-6 py-4 text-sm text-gray-800">{fb.criticality}</td>
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                           fb.status==="New"?"bg-yellow-100 text-yellow-700":
@@ -208,6 +220,7 @@ const AdminDashboard = () => {
                           ))}
                         </select>
                       </td>
+                      <td className="px-6 py-4 text-sm text-gray-800">{fb.image}</td>
                     </tr>
                   );
                 })}
