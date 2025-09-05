@@ -50,13 +50,15 @@ export default function Login() {
         maxWidth: 400,
         background: "#fff",
         borderRadius: 16,
-        boxShadow: "0 6px 32px rgba(59,130,246,0.10), 0 1.5px 6px rgba(0,0,0,0.04)",
+        boxShadow:
+          "0 6px 32px rgba(59,130,246,0.10), 0 1.5px 6px rgba(0,0,0,0.04)",
         border: "1px solid #e0e7ef",
         padding: isMobile ? 24 : 40,
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         margin: "50px auto",
       }}
     >
@@ -228,6 +230,26 @@ export default function Login() {
           }}
         >
           {isLoading ? "Connexion..." : "Se connecter"}
+        </button>
+
+        {/* Quit Button */}
+        <button
+          type="button"
+          onClick={() => navigate("/")}
+          style={{
+            width: "100%",
+            padding: "14px 0",
+            background: "#f1f5f9",
+            color: "#374151",
+            border: "1.5px solid #d1d5db",
+            borderRadius: 8,
+            fontSize: 16,
+            fontWeight: 600,
+            cursor: "pointer",
+            marginTop: 12,
+          }}
+        >
+          Quit
         </button>
       </form>
 

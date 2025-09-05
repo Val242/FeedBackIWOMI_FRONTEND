@@ -1,10 +1,12 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Header from './Header';
-import AdminDashboard from './AdminDashboard';
-import FeedBackForm from './FeedBackForm';
-import CopyRights from './CopyRights';
-import CollaboratorDashboard from './CollaboratorDashboard'; // create this if needed
+// App.jsx
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import Header from "./Header";
+import AdminDashboard from "./AdminDashboard";
+import FeedBackForm from "./FeedBackForm";
+import CopyRights from "./CopyRights";
+import CollaboratorDashboard from "./CollaboratorDashboard"; // create this file
+import Login from "./Login"; // import login page
 
 export default function App() {
   return (
@@ -21,6 +23,9 @@ export default function App() {
             </div>
           }
         />
+
+        {/* Login page */}
+        <Route path="/login" element={<Login />} />
 
         {/* Admin dashboard */}
         <Route path="/admin" element={<AdminDashboard />} />

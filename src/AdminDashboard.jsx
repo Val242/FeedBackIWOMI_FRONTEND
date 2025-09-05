@@ -175,7 +175,7 @@ const AdminDashboard = () => {
             <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  {["Name","Email","Message","Time","Status","Assigned To"].map(head => (
+                  {["Name","Email","Message","Time","Criticality","Status","Assigned To"].map(head => (
                     <th key={head} className="px-6 py-3 text-left text-sm font-semibold text-gray-600 uppercase">{head}</th>
                   ))}
                 </tr>
@@ -189,6 +189,7 @@ const AdminDashboard = () => {
                       <td className="px-6 py-4 text-sm text-gray-800">{fb.email}</td>
                       <td className="px-6 py-4 text-sm text-gray-800">{fb.message}</td>
                       <td className="px-6 py-4 text-sm text-gray-800">{fb.timestamp}</td>
+                       <td className="px-6 py-4 text-sm text-gray-800">{fb.criticality}</td>
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                           fb.status==="New"?"bg-yellow-100 text-yellow-700":
