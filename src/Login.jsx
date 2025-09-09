@@ -24,12 +24,13 @@ export default function Login() {
           : "http://localhost:3000/api/auth/collaboratorlogin";
 
       const response = await axios.post(endpoint, { name, password });
-      const { token, role: userRole, name: userName } = response.data;
+    const { token, role: userRole, name: userName, developerId } = response.data;
 
-      localStorage.setItem(
-        "currentUser",
-        JSON.stringify({ token, role: userRole, name: userName || name })
-      );
+localStorage.setItem(
+  "currentUser",
+  JSON.stringify({ token, role: userRole, name: userName, developerId })
+);
+
 
       if (userRole === "admin") navigate("/admin");
       else navigate("/collaborator");

@@ -208,18 +208,24 @@ const AdminDashboard = () => {
                           fb.status==="In Progress"?"bg-blue-100 text-blue-700":"bg-green-100 text-green-700"
                         }`}>{fb.status}</span>
                       </td>
-                      <td className="px-6 py-4">
-                        <select
-                          value={fb.assignedTo || ""}
-                          onChange={(e) => handleAssignFeedback(fb._id, e.target.value)}
-                          className="border rounded px-2 py-1"
-                        >
-                          <option value="">Unassigned</option>
-                          {developers.map(dev => (
-                            <option key={dev._id} value={dev._id}>{dev.name}</option>
-                          ))}
-                        </select>
-                      </td>
+                     <td className="px-6 py-4">
+  <div className="flex items-center space-x-2">
+    <select
+      value={fb.assignedTo?._id || fb.assignedTo || ""}
+      onChange={(e) => handleAssignFeedback(fb._id, e.target.value)}
+      className="border rounded px-2 py-1"
+    >
+      <option value="">Unassigned</option>
+      {developers.map((dev) => (
+        <option key={dev._id} value={dev._id}>
+          {dev.name}
+        </option>
+      ))}
+    </select>
+
+  </div>
+</td>
+
                       <td className="px-6 py-4 text-sm text-gray-800">{fb.image}</td>
                     </tr>
                   );
