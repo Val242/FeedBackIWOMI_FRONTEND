@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import emailjs from '@emailjs/browser';
 
 export default function CollaboratorDashboard() {
   const [user, setUser] = useState(null);
@@ -20,6 +21,33 @@ export default function CollaboratorDashboard() {
 
   const notificationsRef = useRef(null);
 
+  // EmailJS function
+  const sendFeedbackUpdateEmail = async (userEmail, userName, feedbackMessage, status) => {
+    if (!userEmail) {
+      console.warn("No recipient email found. Skipping email.");
+      return;
+    }
+
+    const templateParams = {
+      user_name: userName,
+      feedback_message: feedbackMessage,
+      status: status,
+      to_email: userEmail
+    };
+
+    try {
+      const result = await emailjs.send(
+        'service_euggmtc',   // EmailJS Service ID
+        'template_mnfnmll',  // EmailJS Template ID
+        templateParams,
+        'rcq_HKvYYWWIDizAv'  // EmailJS Public Key
+      );
+      console.log('Email sent:', result.text);
+    } catch (err) {
+      console.error('Error sending email:', err);
+    }
+  };
+
   useEffect(() => {
     const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
     if (!currentUser.developerId) {
@@ -35,9 +63,7 @@ export default function CollaboratorDashboard() {
       try {
         const { data } = await axios.get(
           `http://localhost:3000/api/collaborator/feedbacks/${currentUser.developerId}`,
-          {
-            headers: { Authorization: `Bearer ${currentUser.token}` },
-          }
+          { headers: { Authorization: `Bearer ${currentUser.token}` } }
         );
 
         const feedbackArray = data.feedbacks || [];
@@ -54,17 +80,10 @@ export default function CollaboratorDashboard() {
           progressMap[id] = feedback.progress || 0;
 
           switch (feedback.status) {
-            case "In Progress":
-              inProgress++;
-              break;
-            case "Completed":
-              completed++;
-              break;
-            case "Overdue":
-              overdue++;
-              break;
-            default:
-              break;
+            case "In Progress": inProgress++; break;
+            case "Completed": completed++; break;
+            case "Overdue": overdue++; break;
+            default: break;
           }
         });
 
@@ -98,43 +117,39 @@ export default function CollaboratorDashboard() {
   const handleStatusFilterChange = (status) => setCurrentFilter(status);
 
   const handleProgressChange = (feedbackId, newProgress) => {
-    setFeedbackProgress((prev) => ({ ...prev, [feedbackId]: newProgress }));
-    setFeedbackStatus((prev) => ({
-      ...prev,
-      [feedbackId]:
-        newProgress >= 100
-          ? "Completed"
-          : newProgress > 0
-          ? "In Progress"
-          : "New",
-    }));
+    setFeedbackProgress(prev => ({ ...prev, [feedbackId]: newProgress }));
+    const newStatus = newProgress >= 100 ? "Completed" : newProgress > 0 ? "In Progress" : "New";
+    setFeedbackStatus(prev => ({ ...prev, [feedbackId]: newStatus }));
+
+    // Send email if feedback is completed
+    if (newStatus === "Completed") {
+      const feedback = feedbackList.find(f => f._id === feedbackId);
+      if (feedback) {
+        sendFeedbackUpdateEmail(
+          feedback.email,     // <-- safe email
+          feedback.name,
+          feedback.message,
+          newStatus
+        );
+      }
+    }
   };
 
   const filteredFeedbacks = feedbackList.filter(
     (f) => currentFilter === "all" || feedbackStatus[f._id] === currentFilter
   );
 
-  if (loading)
-    return (
-      <div className="flex justify-center items-center h-screen text-gray-500">
-        Loading...
-      </div>
-    );
+  if (loading) return <div className="flex justify-center items-center h-screen text-gray-500">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 font-sans">
       {/* Header */}
       <header className="bg-white shadow-sm px-6 py-4 flex justify-between items-center sticky top-0 z-40">
-        <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
-          👩‍💻 Collaborator Dashboard
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-800 tracking-tight">👩‍💻 Collaborator Dashboard</h1>
         <div className="flex items-center gap-6">
           {/* Notifications */}
           <div className="relative" ref={notificationsRef}>
-            <button
-              onClick={toggleNotifications}
-              className="relative text-2xl hover:scale-110 transition-transform"
-            >
+            <button onClick={toggleNotifications} className="relative text-2xl hover:scale-110 transition-transform">
               🔔
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shadow">
@@ -145,19 +160,12 @@ export default function CollaboratorDashboard() {
             {showNotifications && (
               <div className="absolute top-full right-0 w-80 max-h-96 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-xl mt-3 z-50">
                 {notifications.length === 0 ? (
-                  <div className="p-6 text-center text-gray-400">
-                    No notifications
-                  </div>
+                  <div className="p-6 text-center text-gray-400">No notifications</div>
                 ) : (
-                  notifications.map((n) => (
-                    <div
-                      key={n.id}
-                      className="p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                    >
+                  notifications.map(n => (
+                    <div key={n.id} className="p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors">
                       <p className="text-sm text-gray-700">{n.message}</p>
-                      <span className="text-xs text-gray-400">
-                        2 hours ago
-                      </span>
+                      
                     </div>
                   ))
                 )}
@@ -183,14 +191,9 @@ export default function CollaboratorDashboard() {
           { key: "completed", label: "Completed", color: "green", icon: "✅" },
           { key: "overdue", label: "Overdue", color: "red", icon: "⚠️" },
         ].map(({ key, label, color, icon }) => (
-          <div
-            key={key}
-            className="bg-white p-6 rounded-xl border border-gray-200 text-center shadow hover:shadow-md transition-shadow"
-          >
+          <div key={key} className="bg-white p-6 rounded-xl border border-gray-200 text-center shadow hover:shadow-md transition-shadow">
             <div className={`text-${color}-500 text-4xl mb-3`}>{icon}</div>
-            <div className={`text-3xl font-extrabold text-${color}-600`}>
-              {summaryStats[key]}
-            </div>
+            <div className={`text-3xl font-extrabold text-${color}-600`}>{summaryStats[key]}</div>
             <p className="text-gray-500 text-sm mt-1">{label}</p>
           </div>
         ))}
@@ -198,7 +201,7 @@ export default function CollaboratorDashboard() {
 
       {/* Filters */}
       <div className="flex gap-3 px-6 flex-wrap mb-6">
-        {["all", "New", "In Progress", "Completed"].map((status) => (
+        {["all", "New", "In Progress", "Completed"].map(status => (
           <button
             key={status}
             onClick={() => handleStatusFilterChange(status)}
@@ -216,9 +219,7 @@ export default function CollaboratorDashboard() {
       {/* Feedback Table */}
       <div className="bg-white rounded-xl border border-gray-200 mx-6 overflow-hidden shadow">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-800">
-            Assigned Feedbacks
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-800">Assigned Feedbacks</h2>
         </div>
         {filteredFeedbacks.length === 0 ? (
           <div className="p-12 text-center text-gray-400">No feedbacks found</div>
@@ -226,53 +227,40 @@ export default function CollaboratorDashboard() {
           <table className="w-full table-auto">
             <thead className="bg-gray-50">
               <tr>
-                {["ID", "CLIENT", "DESCRIPTION", "SERVICE", "STATUS", "PROGRESS", "DATE"].map(
-                  (h) => (
-                    <th
-                      key={h}
-                      className="px-6 py-3 text-left text-gray-500 text-xs font-semibold tracking-wider"
-                    >
-                      {h}
-                    </th>
-                  )
-                )}
+                {["ID", "CLIENT", "DESCRIPTION", "SERVICE", "STATUS", "PROGRESS", "DATE"].map(h => (
+                  <th key={h} className="px-6 py-3 text-left text-gray-500 text-xs font-semibold tracking-wider">{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {filteredFeedbacks.map((f) => (
-                <tr
-                  key={f._id}
-                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                >
+              {filteredFeedbacks.map(f => (
+                <tr key={f._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 text-gray-800 font-medium">#{f._id}</td>
                   <td className="px-6 py-4">{f.name}</td>
                   <td className="px-6 py-4 max-w-xs truncate">{f.message}</td>
                   <td className="px-6 py-4 text-gray-500">{f.service}</td>
                   <td className="px-6 py-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${
-                        feedbackStatus[f._id] === "New"
-                          ? "bg-yellow-100 text-yellow-600"
-                          : feedbackStatus[f._id] === "In Progress"
-                          ? "bg-blue-100 text-blue-600"
-                          : "bg-green-100 text-green-600"
-                      }`}
-                    >
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${
+                      feedbackStatus[f._id] === "New" ? "bg-yellow-100 text-yellow-600"
+                        : feedbackStatus[f._id] === "In Progress" ? "bg-blue-100 text-blue-600"
+                        : "bg-green-100 text-green-600"
+                    }`}>
                       {feedbackStatus[f._id]}
                     </span>
                   </td>
                   <td className="px-6 py-4 w-52">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-500 h-2 rounded-full"
-                        style={{ width: `${feedbackProgress[f._id] || 0}%` }}
-                      ></div>
-                    </div>
-                    <span className="text-gray-500 text-xs mt-1 block">
-                      {feedbackProgress[f._id] || 0}%
-                    </span>
+                    {/* Draggable progress bar */}
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={feedbackProgress[f._id] || 0}
+                      onChange={(e) => handleProgressChange(f._id, Number(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer"
+                    />
+                    <span className="text-gray-500 text-xs mt-1 block">{feedbackProgress[f._id] || 0}%</span>
                   </td>
-                  <td className="px-6 py-4 text-gray-500 text-sm">{f.date}</td>
+                  <td className="px-6 py-4 text-gray-500 text-sm">{new Date(f.timestamp).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>
