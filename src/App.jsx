@@ -27,6 +27,8 @@ export default function App() {
         {/* Login page */}
         <Route path="/login" element={<Login />} />
 
+          <Route path="/feedbackForm" element={<FeedBackForm />} />
+
         {/* Admin dashboard */}
         <Route path="/admin" element={<AdminDashboard />} />
 

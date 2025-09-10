@@ -8,7 +8,7 @@ function FeedBackForm() {
     feedbackType: "bug",
     customType: "",
     message: "",
-    image: [], // changed from screenshots
+    image: [],
     criticality: "low",
   });
 
@@ -67,10 +67,7 @@ function FeedBackForm() {
       data.append("message", formData.message);
       data.append("criticality", formData.criticality);
 
-      // Append images
-      formData.image.forEach((file) => {
-        data.append("image", file);
-      });
+      formData.image.forEach((file) => data.append("image", file));
 
       await axios.post("http://localhost:3000/api/auth/registerFeedback", data, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -100,17 +97,17 @@ function FeedBackForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-50 p-6">
-      <div className="relative w-full max-w-3xl bg-white/70 backdrop-blur-md rounded-2xl shadow-xl p-8">
-        <h2 className="text-3xl font-bold text-gray-800 text-center mb-2">
+      <div className="relative w-full max-w-3xl bg-white/70 backdrop-blur-xl rounded-2xl shadow-2xl p-10 animate-fadeIn">
+        <h2 className="text-3xl font-extrabold text-gray-800 text-center mb-3 animate-slideDown">
           Submit Your Feedback
         </h2>
-        <p className="text-gray-600 text-center mb-6">
+        <p className="text-gray-600 text-center mb-8 animate-slideUp">
           Help us improve by sharing your thoughts or reporting issues.
         </p>
 
-        <form onSubmit={handleSubmit} className="grid gap-5">
+        <form onSubmit={handleSubmit} className="grid gap-6">
           {/* Name */}
-          <div>
+          <div className="animate-fadeIn delay-100">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Name (optional)
             </label>
@@ -121,12 +118,12 @@ function FeedBackForm() {
               onChange={handleChange}
               placeholder="Your name"
               disabled={loading}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none disabled:opacity-50"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition-all disabled:opacity-50 hover:shadow-md"
             />
           </div>
 
           {/* Feedback Type */}
-          <div>
+          <div className="animate-fadeIn delay-150">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Feedback Type
             </label>
@@ -135,7 +132,7 @@ function FeedBackForm() {
               value={formData.feedbackType}
               onChange={handleChange}
               disabled={loading}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none disabled:opacity-50"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-400 outline-none transition-all disabled:opacity-50 hover:shadow-md"
             >
               <option value="bug">Bug Report</option>
               <option value="feature">Feature Request</option>
@@ -152,18 +149,18 @@ function FeedBackForm() {
                 onChange={handleChange}
                 disabled={loading}
                 placeholder="Enter custom category"
-                className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none disabled:opacity-50"
+                className="w-full mt-2 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-400 outline-none transition-all disabled:opacity-50 hover:shadow-md"
               />
             )}
           </div>
 
           {/* Criticality with emoji buttons */}
-          <div>
+          <div className="animate-fadeIn delay-200">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Criticality *
             </label>
             <div className="flex gap-3 justify-between">
-              {[ 
+              {[
                 { value: "low", label: "Low 🟢" },
                 { value: "average", label: "Medium 🟡" },
                 { value: "high", label: "High 🟠" },
@@ -172,10 +169,10 @@ function FeedBackForm() {
                 <button
                   key={item.value}
                   type="button"
-                  className={`flex-1 px-3 py-2 rounded-lg border transition font-medium ${
+                  className={`flex-1 px-3 py-2 rounded-xl border font-medium transition-transform duration-200 ${
                     formData.criticality === item.value
                       ? "bg-indigo-200 border-indigo-400 ring-2 ring-indigo-300"
-                      : "bg-white border-gray-300 hover:bg-gray-100"
+                      : "bg-white border-gray-300 hover:bg-gray-100 hover:scale-105"
                   }`}
                   onClick={() =>
                     setFormData((prev) => ({ ...prev, criticality: item.value }))
@@ -189,7 +186,7 @@ function FeedBackForm() {
           </div>
 
           {/* Message */}
-          <div>
+          <div className="animate-fadeIn delay-250">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Message *
             </label>
@@ -200,13 +197,13 @@ function FeedBackForm() {
               required
               placeholder="Please describe your feedback in detail"
               disabled={loading}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-indigo-400 outline-none disabled:opacity-50 h-28"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none focus:ring-2 focus:ring-indigo-400 outline-none transition-all disabled:opacity-50 hover:shadow-md h-28"
             />
           </div>
 
           {/* Email */}
           {showEmail && (
-            <div>
+            <div className="animate-fadeIn delay-300">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Email *
               </label>
@@ -218,14 +215,16 @@ function FeedBackForm() {
                 required
                 disabled={loading}
                 placeholder="Your.email@example.com"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none disabled:opacity-50"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-400 outline-none transition-all disabled:opacity-50 hover:shadow-md"
               />
-              {emailError && <div className="text-red-500 text-sm mt-1">{emailError}</div>}
+              {emailError && (
+                <div className="text-red-500 text-sm mt-1">{emailError}</div>
+              )}
             </div>
           )}
 
           {/* Image */}
-          <div>
+          <div className="animate-fadeIn delay-350">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Add up to 5 images
             </label>
@@ -238,11 +237,18 @@ function FeedBackForm() {
               multiple
               className="block"
             />
-            {imgError && <div className="text-red-500 text-sm mt-1">{imgError}</div>}
+            {imgError && (
+              <div className="text-red-500 text-sm mt-1">{imgError}</div>
+            )}
             {previews.length > 0 && (
               <div className="flex gap-2 mt-2">
                 {previews.map((src, idx) => (
-                  <img key={idx} src={src} alt={`Preview ${idx}`} className="h-16 w-16 object-cover rounded" />
+                  <img
+                    key={idx}
+                    src={src}
+                    alt={`Preview ${idx}`}
+                    className="h-16 w-16 object-cover rounded-xl shadow-md"
+                  />
                 ))}
               </div>
             )}
@@ -252,7 +258,7 @@ function FeedBackForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-black text-white rounded-xl hover:bg-gray-800 disabled:opacity-60"
+            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 hover:scale-105 transition-all disabled:opacity-60 shadow-lg"
           >
             {loading ? "Submitting..." : "Submit Feedback"}
           </button>

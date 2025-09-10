@@ -1,54 +1,71 @@
-import React from 'react'
-import logo from './assets/chat-2.png'
-import {FaTwitter,FaGithub,FaLinkedin } from 'react-icons/fa';
+import React from "react";
+import logo from "./assets/chat-2.png";
+import { FaTwitter, FaGithub, FaLinkedin } from "react-icons/fa";
 
-function CopyRights() {
+export default function CopyRights() {
   return (
-    
-          <div className='grid grid-cols-[1fr_1fr_1fr_2fr]  bg-black place-items-center mt-4 '>
-               <div>
-               <div className='flex items-center space-0-1 not-[]: py-3'>
-                 <img src={logo} alt='logo' className='w-[30px] h-[30px]' />
-                 <span className='text-x1 font-semibold text-white'>FeedbackHub</span>
-             
-               </div>
-               <p className='text-gray-500'> use our wonderful to  Streamline your feedback management process with our comprehensive solution to mprove your user ex.</p>
-              </div>
-                 
-                
-                
-                    <div>
-                     <h2 className='py-3 text-white'>Quick Links</h2>
-                      <ul className='text-gray-500 '>
-                        <li className=' hover:text-white'>Submit Feedback</li>
-                        <li className=' hover:text-white'> Track Status</li>
-                        <li className=' hover:text-white'>Admin Login</li>
-                        <li className=' hover:text-white'>Developer Portal</li>
-                        </ul>
-                         </div>
-   
-                        <div>
-                         <h2 className='py-3  text-white'>Support</h2>
-                     <ul className='text-gray-500  '>
-                       <li className=' hover:text-white'>Help Center</li>
-                       <li className=' hover:text-white'>Documentation</li>
-                       <li className=' hover:text-white'>Contact Us</li>
-                       <li className=' hover:text-white'>Privacy Policy</li>
-                       </ul>
-                       </div>
-                      
-                       <div className='py-3 text-white'>
-                        <h2>Connect</h2>  
-                        <div className='flex gap-4 py-3'>
-                        <FaTwitter className='text-gray-500  hover:text-white'></FaTwitter>
-                        <FaGithub className='text-gray-500 hover:text-white'></FaGithub>
-                        <FaLinkedin className='text-gray-500  hover:text-white'></FaLinkedin>
-                        </div>
-                         </div>
-                     
-             
+    <footer className="bg-black text-gray-400 mt-8">
+      <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Branding */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <img src={logo} alt="logo" className="w-12 h-12" /> {/* Increased size */}
+            <span className="text-2xl font-bold text-white">FeedbackHub</span>
+          </div>
+          <p className="text-gray-400 text-sm">
+            Streamline your feedback management process with our comprehensive
+            solution to improve your user experience.
+          </p>
         </div>
-  )
-}
 
-export default CopyRights
+        {/* Quick Links */}
+        <div>
+          <h2 className="text-white font-semibold mb-3">Quick Links</h2>
+          <ul className="space-y-2 text-sm">
+            {["Submit Feedback", "Track Status", "Admin Login", "Developer Portal"].map(
+              (link, idx) => (
+                <li
+                  key={idx}
+                  className="hover:text-white cursor-pointer transition-colors"
+                >
+                  {link}
+                </li>
+              )
+            )}
+          </ul>
+        </div>
+
+        {/* Support */}
+        <div>
+          <h2 className="text-white font-semibold mb-3">Support</h2>
+          <ul className="space-y-2 text-sm">
+            {["Help Center", "Documentation", "Contact Us", "Privacy Policy"].map(
+              (item, idx) => (
+                <li
+                  key={idx}
+                  className="hover:text-white cursor-pointer transition-colors"
+                >
+                  {item}
+                </li>
+              )
+            )}
+          </ul>
+        </div>
+
+        {/* Social Connect */}
+        <div className="space-y-3">
+          <h2 className="text-white font-semibold">Connect</h2>
+          <div className="flex gap-5 mt-2">
+            <FaTwitter className="text-gray-400 hover:text-white transition-transform transform hover:scale-125 cursor-pointer text-2xl" />
+            <FaGithub className="text-gray-400 hover:text-white transition-transform transform hover:scale-125 cursor-pointer text-2xl" />
+            <FaLinkedin className="text-gray-400 hover:text-white transition-transform transform hover:scale-125 cursor-pointer text-2xl" />
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-gray-700 mt-6 pt-4 text-center text-gray-500 text-sm">
+        &copy; {new Date().getFullYear()} FeedbackHub. All rights reserved.
+      </div>
+    </footer>
+  );
+}

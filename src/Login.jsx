@@ -1,4 +1,3 @@
-// Login.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -24,254 +23,108 @@ export default function Login() {
           : "http://localhost:3000/api/auth/collaboratorlogin";
 
       const response = await axios.post(endpoint, { name, password });
-    const { token, role: userRole, name: userName, developerId } = response.data;
+      const { token, role: userRole, name: userName, developerId } = response.data;
 
-localStorage.setItem(
-  "currentUser",
-  JSON.stringify({ token, role: userRole, name: userName, developerId })
-);
-
+      localStorage.setItem(
+        "currentUser",
+        JSON.stringify({ token, role: userRole, name: userName, developerId })
+      );
 
       if (userRole === "admin") navigate("/admin");
       else navigate("/collaborator");
     } catch (err) {
-      setError(err.response?.data?.message || "Erreur de connexion au serveur");
+      setError(err.response?.data?.message || "Server connection error");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Responsive width
-  const isMobile = window.innerWidth < 700;
-
   return (
-    <div
-      style={{
-        width: isMobile ? "95vw" : 400,
-        maxWidth: 400,
-        background: "#fff",
-        borderRadius: 16,
-        boxShadow:
-          "0 6px 32px rgba(59,130,246,0.10), 0 1.5px 6px rgba(0,0,0,0.04)",
-        border: "1px solid #e0e7ef",
-        padding: isMobile ? 24 : 40,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        fontFamily:
-          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        margin: "50px auto",
-      }}
-    >
-      <div style={{ marginBottom: 32, textAlign: "center" }}>
-        <h2
-          style={{
-            fontSize: 28,
-            fontWeight: 800,
-            color: "#1e293b",
-            marginBottom: 8,
-          }}
-        >
-          Feedback Hub
-        </h2>
-        <p style={{ color: "#64748b", fontSize: 16, marginBottom: 8 }}>
-          Plateforme collaborative
-        </p>
-        <h3
-          style={{
-            fontSize: 20,
-            fontWeight: 700,
-            color: "#1e293b",
-            marginBottom: 4,
-          }}
-        >
-          Connexion
-        </h3>
-        <p style={{ color: "#64748b", fontSize: 15 }}>
-          Accédez à votre espace de travail
-        </p>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-50 p-6">
+      <div className="w-full max-w-md bg-white/70 backdrop-blur-xl rounded-2xl shadow-2xl p-8 animate-fadeIn">
+        <div className="text-center mb-6">
+          <h2 className="text-3xl font-extrabold text-gray-800 mb-1">Feedback Hub</h2>
+          <p className="text-gray-600 text-sm mb-2">Collaborative Platform</p>
+          <h3 className="text-xl font-bold text-gray-800 mb-1">Login</h3>
+          <p className="text-gray-500 text-sm">Access your workspace</p>
+        </div>
 
-      <form onSubmit={handleLogin} autoComplete="off">
-        {/* Role Selector */}
-        <div style={{ marginBottom: 20 }}>
-          <label
-            style={{
-              display: "block",
-              fontSize: 14,
-              fontWeight: 600,
-              color: "#374151",
-              marginBottom: 8,
-            }}
-          >
-            Rôle
-          </label>
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              background: "#f1f5f9",
-              padding: 4,
-              borderRadius: 8,
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => setRole("admin")}
-              style={{
-                flex: 1,
-                padding: "12px 0",
-                background: role === "admin" ? "#000" : "transparent",
-                color: role === "admin" ? "white" : "#64748b",
-                border: "none",
-                borderRadius: 6,
-                fontSize: 14,
-                fontWeight: 500,
-                cursor: "pointer",
-              }}
-            >
-              Administrateur
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole("collaborator")}
-              style={{
-                flex: 1,
-                padding: "12px 0",
-                background: role === "collaborator" ? "#000" : "transparent",
-                color: role === "collaborator" ? "white" : "#64748b",
-                border: "none",
-                borderRadius: 6,
-                fontSize: 14,
-                fontWeight: 500,
-                cursor: "pointer",
-              }}
-            >
-              Collaborateur
-            </button>
+        <form onSubmit={handleLogin} autoComplete="off" className="space-y-5">
+          {/* Role Selector */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+            <div className="flex gap-2 bg-gray-100 rounded-xl p-1">
+              {["admin", "collaborator"].map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRole(r)}
+                  className={`flex-1 py-2 rounded-lg font-medium text-sm transition-transform duration-200 ${
+                    role === r
+                      ? "bg-indigo-600 text-white shadow-lg scale-105"
+                      : "text-gray-600 hover:bg-indigo-100 hover:scale-105"
+                  }`}
+                >
+                  {r === "admin" ? "Administrator" : "Collaborator"}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Name */}
-        <div style={{ marginBottom: 16 }}>
-          <label
-            style={{
-              display: "block",
-              fontSize: 14,
-              fontWeight: 600,
-              color: "#374151",
-              marginBottom: 8,
-            }}
+          {/* Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name"
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition-all hover:shadow-md bg-gray-50"
+            />
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition-all hover:shadow-md bg-gray-50"
+            />
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={`w-full py-3 rounded-xl font-bold text-white transition-transform duration-200 ${
+              isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700 hover:scale-105"
+            }`}
           >
-            Nom
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Votre nom"
-            style={{
-              width: "100%",
-              padding: "12px 16px",
-              border: "1.5px solid #d1d5db",
-              borderRadius: 8,
-              fontSize: 15,
-              outline: "none",
-              background: "#f9fafb",
-            }}
-            required
-          />
-        </div>
+            {isLoading ? "Logging in..." : "Login"}
+          </button>
 
-        {/* Password */}
-        <div style={{ marginBottom: 24 }}>
-          <label
-            style={{
-              display: "block",
-              fontSize: 14,
-              fontWeight: 600,
-              color: "#374151",
-              marginBottom: 8,
-            }}
+          {/* Quit */}
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="w-full py-3 rounded-xl font-semibold border border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all"
           >
-            Mot de passe
-          </label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="mot de passe"
-            style={{
-              width: "100%",
-              padding: "12px 16px",
-              border: "1.5px solid #d1d5db",
-              borderRadius: 8,
-              fontSize: 15,
-              outline: "none",
-              background: "#f9fafb",
-            }}
-            required
-          />
-        </div>
+            Quit
+          </button>
+        </form>
 
-        {/* Submit */}
-        <button
-          type="submit"
-          disabled={isLoading}
-          style={{
-            width: "100%",
-            padding: "14px 0",
-            background: isLoading ? "#9ca3af" : "#000",
-            color: "white",
-            border: "none",
-            borderRadius: 8,
-            fontSize: 16,
-            fontWeight: 700,
-            cursor: isLoading ? "not-allowed" : "pointer",
-          }}
-        >
-          {isLoading ? "Connexion..." : "Se connecter"}
-        </button>
-
-        {/* Quit Button */}
-        <button
-          type="button"
-          onClick={() => navigate("/")}
-          style={{
-            width: "100%",
-            padding: "14px 0",
-            background: "#f1f5f9",
-            color: "#374151",
-            border: "1.5px solid #d1d5db",
-            borderRadius: 8,
-            fontSize: 16,
-            fontWeight: 600,
-            cursor: "pointer",
-            marginTop: 12,
-          }}
-        >
-          Quit
-        </button>
-      </form>
-
-      {/* Error Message */}
-      {error && (
-        <div
-          style={{
-            marginTop: 24,
-            padding: "14px 28px",
-            background: "#fee2e2",
-            border: "1.5px solid #fca5a5",
-            borderRadius: 10,
-            color: "#b91c1c",
-            fontSize: 15,
-            fontWeight: 600,
-            textAlign: "center",
-          }}
-        >
-          {error}
-        </div>
-      )}
+        {/* Error Message */}
+        {error && (
+          <div className="mt-5 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-center font-medium">
+            {error}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
