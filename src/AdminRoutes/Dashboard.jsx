@@ -48,7 +48,12 @@ const Dashboard = () => {
     fetchStats();
   }, [token]);
 
-  if (loading) return <p className="text-gray-500">Loading dashboard stats...</p>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+        <p className="text-gray-500 text-lg">Loading dashboard stats...</p>
+      </div>
+    );
 
   const statItems = [
     { label: "Total Feedbacks", value: stats.totalFeedbacks, icon: <FaClipboardList className="text-3xl text-blue-500" /> },
@@ -58,29 +63,34 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="space-y-10">
+    <div className="p-6 min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 space-y-10">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {statItems.map((stat, idx) => (
           <motion.div
             key={idx}
-            className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1"
-            whileHover={{ scale: 1.03 }}
+            className="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-lg hover:shadow-xl transition transform hover:-translate-y-1"
+            whileHover={{ scale: 1.04 }}
           >
             <div className="flex items-center gap-4 mb-4">
               {stat.icon}
-              <p className="text-gray-500 font-medium">{stat.label}</p>
+              <p className="text-gray-600 font-medium">{stat.label}</p>
             </div>
             <p className="text-3xl font-extrabold text-gray-800">{stat.value}</p>
           </motion.div>
         ))}
       </div>
 
-      {/* Write-up Section */}
-      <div className="bg-white p-6 rounded-2xl shadow-md">
+      {/* Welcome Section */}
+      <motion.div
+        className="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-lg"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <h2 className="text-2xl font-bold mb-4 text-gray-800">Welcome to Your Admin Dashboard</h2>
         <p className="text-gray-600 mb-2">
-          Here you can monitor feedback activity and manage your developers efficiently. Use the statistics above to quickly track total feedbacks, assigned tasks, and your team size.
+          Monitor feedback activity and manage your developers efficiently. Use the statistics above to quickly track total feedbacks, assigned tasks, and your team size.
         </p>
         <p className="text-gray-600 mb-2">
           Keep an eye on unassigned feedbacks to ensure nothing is missed. Assign tasks to developers promptly to maintain smooth workflow.
@@ -88,7 +98,7 @@ const Dashboard = () => {
         <p className="text-gray-600">
           Explore the navigation tabs to view detailed feedback lists, developer profiles, and other management tools.
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 };

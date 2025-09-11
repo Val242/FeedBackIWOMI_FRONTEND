@@ -1,7 +1,7 @@
 /*
 Matricule: FE23A038
 Chapter: Collaborator Dashboard
-Exercise: Improved UI
+Exercise: Improved SaaS UI
 */
 
 import React, { useState, useEffect, useRef } from "react";
@@ -26,10 +26,10 @@ export default function CollaboratorDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [currentFilter, setCurrentFilter] = useState("all");
+  const [modalImage, setModalImage] = useState(null);
 
   const notificationsRef = useRef(null);
 
-  // EmailJS function
   const sendFeedbackUpdateEmail = async (userEmail, userName, feedbackMessage, status) => {
     if (!userEmail) return;
     const templateParams = { user_name: userName, feedback_message: feedbackMessage, status, to_email: userEmail };
@@ -37,7 +37,6 @@ export default function CollaboratorDashboard() {
     catch (err) { console.error("Error sending email:", err); }
   };
 
-  // Fetch user & feedbacks
   useEffect(() => {
     const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
     if (!currentUser?.developerId) { navigate("/login", { replace: true }); return; }
@@ -50,7 +49,6 @@ export default function CollaboratorDashboard() {
           `http://localhost:3000/api/collaborator/feedbacks/${currentUser.developerId}`,
           { headers: { Authorization: `Bearer ${currentUser.token}` } }
         );
-console.log(data)
 
         const feedbackArray = data.feedbacks || [];
         const statusMap = {};
@@ -84,29 +82,24 @@ console.log(data)
   };
 
   const handleStatusFilterChange = (status) => setCurrentFilter(status);
-const handleProgressChange = async (feedbackId, newProgress) => {
-  // Update UI immediately
-  setFeedbackProgress(prev => ({ ...prev, [feedbackId]: newProgress }));
 
-  // Determine new status
-  const newStatus = newProgress >= 100 ? "Completed" : newProgress > 0 ? "In Progress" : "New";
-  setFeedbackStatus(prev => ({ ...prev, [feedbackId]: newStatus }));
+  const handleProgressChange = async (feedbackId, newProgress) => {
+    setFeedbackProgress(prev => ({ ...prev, [feedbackId]: newProgress }));
 
-  try {
-    // Persist to backend
-    const { data } = await axios.put(
-      `http://localhost:3000/api/collaborator/feedbacks/feedbacks/${feedbackId}`,
-      
-      { progress: newProgress, status: newStatus },
-      { headers: { Authorization: `Bearer ${user.token}` } }
-    );
-    console.log("Backend updated:", data.feedback);
-  } catch (err) {
-    console.error("Error updating feedback:", err);
-    console.log("Token:", user.token);
-  }
-};
+    const newStatus = newProgress >= 100 ? "Completed" : newProgress > 0 ? "In Progress" : "New";
+    setFeedbackStatus(prev => ({ ...prev, [feedbackId]: newStatus }));
 
+    try {
+      const { data } = await axios.put(
+        `http://localhost:3000/api/collaborator/feedbacks/feedbacks/${feedbackId}`,
+        { progress: newProgress, status: newStatus },
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
+      console.log("Backend updated:", data.feedback);
+    } catch (err) {
+      console.error("Error updating feedback:", err);
+    }
+  };
 
   const filteredFeedbacks = feedbackList.filter(
     (f) => currentFilter === "all" || feedbackStatus[f._id] === currentFilter
@@ -115,10 +108,10 @@ const handleProgressChange = async (feedbackId, newProgress) => {
   if (loading) return <div className="flex justify-center items-center h-screen text-gray-500">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100 font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 font-sans">
       {/* Header */}
       <header className="bg-white shadow-md px-6 py-4 flex justify-between items-center sticky top-0 z-40 rounded-b-xl">
-        <h1 className="text-2xl font-bold text-gray-800 tracking-tight">👩‍💻 Hello, {user?.name}</h1>
+        <h1 className="text-2xl font-bold text-gray-800 tracking-tight">👋 Hello, {user?.name}</h1>
         <div className="flex items-center gap-6">
           {/* Notifications */}
           <div className="relative" ref={notificationsRef}>
@@ -135,7 +128,7 @@ const handleProgressChange = async (feedbackId, newProgress) => {
                 {notifications.length === 0 ? (
                   <div className="p-6 text-center text-gray-400">No notifications</div>
                 ) : notifications.map((n) => (
-                  <div key={n.id} className="p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                  <div key={n.id} className="p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors rounded-md">
                     <p className="text-sm text-gray-700">{n.message}</p>
                   </div>
                 ))}
@@ -196,7 +189,7 @@ const handleProgressChange = async (feedbackId, newProgress) => {
           <table className="w-full table-auto">
             <thead className="bg-gray-100">
               <tr>
-                {["ID", "CLIENT", "DESCRIPTION", "SERVICE", "STATUS", "PROGRESS", "DATE"].map((h) => (
+                {["ID", "CLIENT", "DESCRIPTION", "IMAGE", "STATUS", "PROGRESS", "DATE"].map((h) => (
                   <th key={h} className="px-6 py-3 text-left text-gray-500 text-xs font-semibold tracking-wider">{h}</th>
                 ))}
               </tr>
@@ -207,7 +200,16 @@ const handleProgressChange = async (feedbackId, newProgress) => {
                   <td className="px-6 py-4 font-medium text-gray-800">#{f._id}</td>
                   <td className="px-6 py-4">{f.name}</td>
                   <td className="px-6 py-4 max-w-xs truncate">{f.message}</td>
-                  <td className="px-6 py-4 text-gray-500">{f.service}</td>
+                  <td className="px-6 py-4">
+                    {f.image && (
+                      <img
+                        src={f.image}
+                        alt="Feedback"
+                        className="h-16 w-16 object-cover rounded-md cursor-pointer hover:scale-105 transition-transform"
+                        onClick={() => setModalImage(f.image)}
+                      />
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${
                       feedbackStatus[f._id] === "New" ? "bg-yellow-100 text-yellow-600"
@@ -215,25 +217,21 @@ const handleProgressChange = async (feedbackId, newProgress) => {
                       : "bg-green-100 text-green-600"
                     }`}>{feedbackStatus[f._id]}</span>
                   </td>
-             <td className="px-6 py-4 w-52">
-  <div className="flex items-center gap-3">
-    <input
-      type="range"
-      min={0}
-      max={100}
-      value={feedbackProgress[f._id] || 0}
-      onChange={(e) => setFeedbackProgress(prev => ({ ...prev, [f._id]: Number(e.target.value) }))}
-      onMouseUp={(e) => handleProgressChange(f._id, Number(e.target.value))}
-      onTouchEnd={(e) => handleProgressChange(f._id, Number(e.target.value))}
-      className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-blue-500"
-    />
-    <span className="text-gray-500 text-xs w-10 text-right">
-      {feedbackProgress[f._id] || 0}%
-    </span>
-  </div>
-</td>
-
-
+                  <td className="px-6 py-4 w-52">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={feedbackProgress[f._id] || 0}
+                        onChange={(e) => setFeedbackProgress(prev => ({ ...prev, [f._id]: Number(e.target.value) }))}
+                        onMouseUp={(e) => handleProgressChange(f._id, Number(e.target.value))}
+                        onTouchEnd={(e) => handleProgressChange(f._id, Number(e.target.value))}
+                        className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-blue-500"
+                      />
+                      <span className="text-gray-500 text-xs w-10 text-right">{feedbackProgress[f._id] || 0}%</span>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 text-gray-500 text-sm">{new Date(f.timestamp).toLocaleDateString()}</td>
                 </tr>
               ))}
@@ -241,6 +239,21 @@ const handleProgressChange = async (feedbackId, newProgress) => {
           </table>
         )}
       </div>
+
+      {/* Image Modal */}
+      {modalImage && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+          onClick={() => setModalImage(null)}
+        >
+          <img
+            src={modalImage}
+            alt="Full view"
+            className="max-h-[80%] max-w-[80%] rounded-lg shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }

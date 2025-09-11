@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { motion } from "framer-motion";
 
 const Developers = () => {
   const [developers, setDevelopers] = useState([]);
@@ -41,68 +42,81 @@ const Developers = () => {
     }
   };
 
-  if (loading) return <p>Loading developers...</p>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+        <p className="text-gray-500 text-lg">Loading developers...</p>
+      </div>
+    );
 
   return (
-    <div>
-      <form onSubmit={handleCreateDeveloper} className="mb-4 space-y-2">
-        <input
-          type="text"
-          placeholder="Name"
-          value={newDev.name}
-          onChange={e => setNewDev({ ...newDev, name: e.target.value })}
-          className="border p-2 rounded"
-          required
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={newDev.email}
-          onChange={e => setNewDev({ ...newDev, email: e.target.value })}
-          className="border p-2 rounded"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={newDev.password}
-          onChange={e => setNewDev({ ...newDev, password: e.target.value })}
-          className="border p-2 rounded"
-          required
-        />
-        <input
-          type="text"
-          placeholder="Role"
-          value={newDev.role}
-          onChange={e => setNewDev({ ...newDev, role: e.target.value })}
-          className="border p-2 rounded"
-          required
-        />
-        <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-          Create Developer
-        </button>
-      </form>
+    <div className="p-6 min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 space-y-8">
+    
 
-      <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-        <thead className="bg-gray-50">
-          <tr>
-            {["Name", "Email", "Role"].map(head => (
-              <th key={head} className="px-6 py-3 text-left text-sm font-semibold text-gray-600 uppercase">
-                {head}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {developers.map((dev, idx) => (
-            <tr key={dev._id || idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-              <td className="px-6 py-4 text-sm">{dev.name}</td>
-              <td className="px-6 py-4 text-sm">{dev.email}</td>
-              <td className="px-6 py-4 text-sm">{dev.role}</td>
+      {/* Developers Table */}
+      <motion.div
+        className="overflow-x-auto bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-lg"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <h2 className="text-xl font-bold mb-4 text-gray-800">Developer List</h2>
+        <table className="min-w-full border border-gray-200 rounded-xl">
+          <thead className="bg-gray-50 rounded-t-xl">
+            <tr>
+              {["Name", "Email", "Role"].map(head => (
+                <th
+                  key={head}
+                  className="px-6 py-3 text-left text-sm font-semibold text-gray-600 uppercase"
+                >
+                  {head}
+                </th>
+              ))}
             </tr>
+          </thead>
+          <tbody>
+            {developers.map((dev, idx) => (
+              <tr
+                key={dev._id || idx}
+                className={`${idx % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-indigo-50 transition`}
+              >
+                <td className="px-6 py-4 text-sm">{dev.name}</td>
+                <td className="px-6 py-4 text-sm">{dev.email}</td>
+                <td className="px-6 py-4 text-sm">{dev.role}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </motion.div>
+
+        {/* Form Card */}
+      <motion.div
+        className="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-lg max-w-xl mx-auto"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h2 className="text-2xl font-bold mb-4 text-gray-800 text-center">Add New Developer</h2>
+        <form onSubmit={handleCreateDeveloper} className="space-y-4">
+          {["name", "email", "password", "role"].map(field => (
+            <input
+              key={field}
+              type={field === "password" ? "password" : "text"}
+              placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+              value={newDev[field]}
+              onChange={e => setNewDev({ ...newDev, [field]: e.target.value })}
+              className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition-all"
+              required
+            />
           ))}
-        </tbody>
-      </table>
+          <button
+            type="submit"
+            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-all shadow-lg"
+          >
+            Create Developer
+          </button>
+        </form>
+      </motion.div>
     </div>
   );
 };

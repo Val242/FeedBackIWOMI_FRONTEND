@@ -8,13 +8,13 @@ function FeedBackForm() {
     feedbackType: "bug",
     customType: "",
     message: "",
-    image: [],
+    image: "", // single image now
     criticality: "low",
   });
 
   const [showEmail, setShowEmail] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [previews, setPreviews] = useState([]);
+  const [preview, setPreview] = useState(null);
   const [imgError, setImgError] = useState("");
   const [emailError, setEmailError] = useState("");
 
@@ -22,16 +22,11 @@ function FeedBackForm() {
     const { name, value, files } = e.target;
 
     if (name === "image") {
-      let selectedFiles = Array.from(files);
-      let allFiles = [...(formData.image || []), ...selectedFiles];
-
-      if (allFiles.length > 5) {
-        setImgError("You can select up to 5 images only.");
-        allFiles = allFiles.slice(0, 5);
-      } else setImgError("");
-
-      setFormData((prev) => ({ ...prev, image: allFiles }));
-      setPreviews(allFiles.map((file) => URL.createObjectURL(file)));
+      if (files[0]) {
+        setFormData((prev) => ({ ...prev, image: files[0] }));
+        setPreview(URL.createObjectURL(files[0]));
+        setImgError("");
+      }
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
       if (name === "email") setEmailError("");
@@ -67,7 +62,9 @@ function FeedBackForm() {
       data.append("message", formData.message);
       data.append("criticality", formData.criticality);
 
-      formData.image.forEach((file) => data.append("image", file));
+      if (formData.image) data.append("image", formData.image);
+      
+     // else console.log("No Image")
 
       await axios.post("http://localhost:3000/api/auth/registerFeedback", data, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -80,11 +77,11 @@ function FeedBackForm() {
         feedbackType: "bug",
         customType: "",
         message: "",
-        image: [],
+        image: null,
         criticality: "low",
       });
       setShowEmail(false);
-      setPreviews([]);
+      setPreview(null);
       setImgError("");
       setEmailError("");
     } catch (error) {
@@ -118,7 +115,7 @@ function FeedBackForm() {
               onChange={handleChange}
               placeholder="Your name"
               disabled={loading}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition-all disabled:opacity-50 hover:shadow-md"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-400 outline-none transition-all disabled:opacity-50 hover:shadow-md"
             />
           </div>
 
@@ -154,7 +151,7 @@ function FeedBackForm() {
             )}
           </div>
 
-          {/* Criticality with emoji buttons */}
+          {/* Criticality */}
           <div className="animate-fadeIn delay-200">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Criticality *
@@ -223,10 +220,10 @@ function FeedBackForm() {
             </div>
           )}
 
-          {/* Image */}
+          {/* Single Image */}
           <div className="animate-fadeIn delay-350">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Add up to 5 images
+              Add an image
             </label>
             <input
               type="file"
@@ -234,22 +231,16 @@ function FeedBackForm() {
               accept="image/*"
               onChange={handleChange}
               disabled={loading}
-              multiple
               className="block"
             />
-            {imgError && (
-              <div className="text-red-500 text-sm mt-1">{imgError}</div>
-            )}
-            {previews.length > 0 && (
+            {imgError && <div className="text-red-500 text-sm mt-1">{imgError}</div>}
+            {preview && (
               <div className="flex gap-2 mt-2">
-                {previews.map((src, idx) => (
-                  <img
-                    key={idx}
-                    src={src}
-                    alt={`Preview ${idx}`}
-                    className="h-16 w-16 object-cover rounded-xl shadow-md"
-                  />
-                ))}
+                <img
+                  src={preview}
+                  alt="Preview"
+                  className="h-16 w-16 object-cover rounded-xl shadow-md"
+                />
               </div>
             )}
           </div>
