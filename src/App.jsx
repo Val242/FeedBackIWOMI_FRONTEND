@@ -7,7 +7,8 @@ import Login from "./Login";
 import FeedBackForm from "./FeedBackForm";
 import Header from "./Header";
 import CopyRights from "./CopyRights";
-import CollaboratorDashboard from './CollaboratorDashboard'
+import CollaboratorDashboard from './CollaboratorDashboard';
+import CollaboratorFeedbackStatusRoutes from "./CollaboratorFeedbackStatusRoutes";
 
 export default function App() {
   return (
@@ -27,11 +28,12 @@ export default function App() {
       {/* Login page */}
       <Route path="/login" element={<Login />} />
 
+      {/* Collaborator dashboard */}
+      <Route path="/collaborator" element={<CollaboratorDashboard />} />
+      {/* Collaborator feedbacks filtered by status */}
+      <Route path="/collaborator/feedbacks/:status" element={<CollaboratorFeedbackStatusRoutes />} />
 
-<Route path="/collaborator" element={<CollaboratorDashboard />} />
-
-
-     {/* Admin dashboard with nested routes */}
+      {/* Admin dashboard with nested routes */}
       <Route path="/admin" element={<AdminDashboard />}>
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="feedbacks" element={<Feedback />} />
@@ -42,7 +44,6 @@ export default function App() {
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
-        
     </Routes>
   );
 }
