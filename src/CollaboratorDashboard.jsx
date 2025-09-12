@@ -1,13 +1,13 @@
 /*
 Matricule: FE23A038
 Chapter: Collaborator Dashboard
-Exercise: SaaS Improved UI with Routing + Filtered Feedback Table
+Exercise: SaaS Improved UI with Routing + Filtered Feedback Table + Progress Update + Image Modal + Smooth Entry
 */
 
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 export default function CollaboratorDashboard() {
   const navigate = useNavigate();
@@ -87,12 +87,44 @@ export default function CollaboratorDashboard() {
     setFilterStatus(map[statusKey] || "all");
   };
 
+  const handleProgressChange = async (feedbackId, newProgress) => {
+    setFeedbackProgress(prev => ({ ...prev, [feedbackId]: newProgress }));
+
+    const newStatus = newProgress >= 100 ? "Resolved" : newProgress > 0 ? "In Progress" : "New";
+    setFeedbackStatus(prev => ({ ...prev, [feedbackId]: newStatus }));
+
+    try {
+      await axios.put(
+        `http://localhost:3000/api/collaborator/feedbacks/feedbacks/${feedbackId}`,
+        { progress: newProgress, status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      console.log(`Feedback ${feedbackId} updated to ${newProgress}% with status ${newStatus}`);
+    } catch (err) {
+      console.error("Error updating feedback:", err);
+    }
+  };
+
   const filteredFeedbacks = feedbackList.filter(f => filterStatus === "all" ? true : f.status === filterStatus);
 
-  if (loading) return <div className="flex justify-center items-center h-screen text-gray-500">Loading...</div>;
+  if (loading) return (
+    <div className="flex justify-center items-center h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-50">
+      <motion.div 
+        className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 0.5 }}
+      />
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100 font-sans">
+    <motion.div
+      className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 font-sans"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       {/* Header */}
       <header className="bg-white shadow-md px-6 py-4 flex justify-between items-center sticky top-0 z-40 rounded-b-xl">
         <h1 className="text-2xl font-bold text-gray-800 tracking-tight">👩‍💻 Hello, {user?.name}</h1>
@@ -123,35 +155,50 @@ export default function CollaboratorDashboard() {
       </header>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
+      <motion.div
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         {[{ key: "total", label: "Total Feedbacks", color: "blue", icon: "📊" },
           { key: "inProgress", label: "In Progress", color: "yellow", icon: "⏳" },
           { key: "completed", label: "Completed", color: "green", icon: "✅" },
           { key: "overdue", label: "Overdue", color: "red", icon: "⚠️" }].map(({ key, label, color, icon }) => (
-          <div key={key} onClick={() => handleCardClick(key)} className={`bg-gradient-to-r from-${color}-100 to-${color}-200 p-6 rounded-2xl shadow-lg hover:scale-105 transform transition-transform cursor-pointer`}>
+          <motion.div 
+            key={key} 
+            onClick={() => handleCardClick(key)} 
+            className={`bg-gradient-to-r from-${color}-100 to-${color}-200 p-6 rounded-2xl shadow-lg hover:scale-105 transform transition-transform cursor-pointer`}
+            whileHover={{ scale: 1.05 }}
+          >
             <div className="text-4xl mb-2">{icon}</div>
             <div className={`text-3xl font-extrabold text-${color}-700`}>{summaryStats[key]}</div>
             <p className="text-gray-600 text-sm mt-1">{label}</p>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Filtered Feedback Table */}
-      <div className="bg-white rounded-2xl border border-gray-200 mx-6 overflow-hidden shadow-lg mb-12">
+      <motion.div 
+        className="bg-white rounded-2xl border border-gray-200 mx-6 overflow-hidden shadow-lg mb-12"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
         <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
           <h2 className="text-lg font-semibold text-gray-800">{filterStatus === "all" ? "All Feedbacks" : `${filterStatus} Feedbacks`}</h2>
         </div>
         {filteredFeedbacks.length === 0 ? <div className="p-12 text-center text-gray-400">No feedbacks found</div> :
           <table className="w-full table-auto">
             <thead className="bg-gray-100">
-              <tr>{["ID","Client","Message","Status","Progress","Date"].map(h => (
+              <tr>{["Client","Message","Status","Progress","Date","Image"].map(h => (
                 <th key={h} className="px-6 py-3 text-left text-gray-500 text-xs font-semibold tracking-wider">{h}</th>
               ))}</tr>
             </thead>
             <tbody>
               {filteredFeedbacks.map(f => (
                 <tr key={f._id} className="border-b border-gray-100 hover:shadow-md hover:bg-gray-50 transition-all">
-                  <td className="px-6 py-4 font-medium text-gray-800">#{f._id}</td>
+            
                   <td className="px-6 py-4">{f.name}</td>
                   <td className="px-6 py-4 max-w-xs truncate">{f.message}</td>
                   <td className="px-6 py-4">
@@ -165,24 +212,36 @@ export default function CollaboratorDashboard() {
                     <div className="flex items-center gap-3">
                       <input type="range" min={0} max={100} value={feedbackProgress[f._id] || 0}
                         onChange={e => setFeedbackProgress(prev => ({ ...prev, [f._id]: Number(e.target.value) }))}
+                        onMouseUp={e => handleProgressChange(f._id, Number(e.target.value))}
+                        onTouchEnd={e => handleProgressChange(f._id, Number(e.target.value))}
                         className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-blue-500" />
                       <span className="text-gray-500 text-xs w-10 text-right">{feedbackProgress[f._id] || 0}%</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-gray-500 text-sm">{new Date(f.timestamp).toLocaleDateString()}</td>
+                  <td className="px-6 py-4">
+                    {f.image && (
+                      <img
+                        src={f.image}
+                        alt="Feedback"
+                        className="h-16 w-16 object-cover rounded-md cursor-pointer shadow-sm hover:shadow-lg hover:scale-105 transition-transform duration-200"
+                        onClick={() => setModalImage(f.image)}
+                      />
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         }
-      </div>
+      </motion.div>
 
       {/* Image Modal */}
       {modalImage && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50" onClick={() => setModalImage(null)}>
-          <img src={modalImage} alt="Full view" className="max-h-[80%] max-w-[80%] rounded-lg shadow-lg" onClick={e => e.stopPropagation()} />
+          <img src={modalImage} alt="Full view" className="max-h-[80%] max-w-[80%] rounded-lg shadow-lg animate-fadeIn" onClick={e => e.stopPropagation()} />
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

@@ -33,14 +33,14 @@ const AdminDashboard = () => {
       key={tab.id}
       to={tab.path}
       className={({ isActive }) =>
-        `flex items-center gap-4 px-5 py-3 rounded-lg transition-all ${
+        `flex items-center gap-4 px-5 py-3 rounded-lg transition-all duration-300 ${
           isActive
-            ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-lg"
-            : "hover:bg-gray-200 text-gray-700"
+            ? "bg-white/20 text-white font-semibold shadow-lg backdrop-blur-sm"
+            : "hover:bg-white/10 text-gray-200"
         }`
       }
     >
-      <span className="text-lg">{tab.icon}</span>
+      <span className="text-lg transition-transform duration-200 hover:scale-110">{tab.icon}</span>
       {!isCollapsed && <span className="text-md font-medium">{tab.label}</span>}
     </NavLink>
   );
@@ -51,13 +51,13 @@ const AdminDashboard = () => {
       <motion.div
         animate={{ width: sidebarCollapsed ? 64 : 240 }}
         transition={{ duration: 0.3 }}
-        className="hidden md:flex flex-col bg-white border-r shadow-lg"
+        className="hidden md:flex flex-col bg-gradient-to-b from-blue-600 via-purple-600 to-indigo-700 shadow-xl text-white"
       >
-        <div className="flex items-center justify-between p-5 border-b">
-          {!sidebarCollapsed && <span className="font-bold text-2xl">Admin</span>}
+        <div className="flex items-center justify-between p-5 border-b border-white/20">
+          {!sidebarCollapsed && <span className="font-bold text-2xl tracking-wide">⚡ Admin</span>}
           <button
             onClick={toggleSidebar}
-            className="text-gray-500 hover:text-gray-800 font-bold text-xl"
+            className="text-white/80 hover:text-white font-bold text-xl"
           >
             {sidebarCollapsed ? "→" : "←"}
           </button>
@@ -67,16 +67,17 @@ const AdminDashboard = () => {
           {tabs.map((tab) => renderTab(tab, sidebarCollapsed))}
         </nav>
 
-        <div className="p-5 border-t flex flex-col gap-2">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
+        {/* User Section */}
+        <div className="p-5 border-t border-white/20">
+          <div className="flex items-center space-x-3 bg-white/10 backdrop-blur-md rounded-lg p-3 shadow-md">
+            <div className="w-10 h-10 bg-gradient-to-tr from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
               👤
             </div>
             {!sidebarCollapsed && (
               <div>
                 <p className="text-sm font-semibold">Admin</p>
                 <button
-                  className="text-xs text-red-500 underline mt-1"
+                  className="text-xs text-red-300 hover:text-red-500 underline mt-1"
                   onClick={handleLogout}
                 >
                   Logout
@@ -91,17 +92,17 @@ const AdminDashboard = () => {
       {mobileSidebarOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
           <div
-            className="fixed inset-0 bg-black opacity-25"
+            className="fixed inset-0 bg-black opacity-40"
             onClick={toggleMobileSidebar}
           ></div>
           <motion.div
             initial={{ x: -300 }}
             animate={{ x: 0 }}
             exit={{ x: -300 }}
-            className="relative flex flex-col w-64 bg-white border-r shadow-lg"
+            className="relative flex flex-col w-64 bg-gradient-to-b from-blue-600 via-purple-600 to-indigo-700 shadow-xl text-white"
           >
-            <div className="flex items-center justify-between p-5 border-b">
-              <span className="font-bold text-lg">Admin</span>
+            <div className="flex items-center justify-between p-5 border-b border-white/20">
+              <span className="font-bold text-lg">⚡ Admin</span>
               <button onClick={toggleMobileSidebar}>✕</button>
             </div>
 
@@ -112,10 +113,10 @@ const AdminDashboard = () => {
                   to={tab.path}
                   onClick={() => setMobileSidebarOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                    `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ${
                       isActive
-                        ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-lg"
-                        : "hover:bg-gray-200 text-gray-700"
+                        ? "bg-white/20 text-white font-semibold shadow-lg backdrop-blur-sm"
+                        : "hover:bg-white/10 text-gray-200"
                     }`
                   }
                 >
@@ -125,15 +126,15 @@ const AdminDashboard = () => {
               ))}
             </nav>
 
-            <div className="p-5 border-t flex flex-col gap-2">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
+            <div className="p-5 border-t border-white/20">
+              <div className="flex items-center space-x-3 bg-white/10 backdrop-blur-md rounded-lg p-3 shadow-md">
+                <div className="w-10 h-10 bg-gradient-to-tr from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
                   👤
                 </div>
                 <div>
                   <p className="text-sm font-semibold">Admin</p>
                   <button
-                    className="text-xs text-red-500 underline mt-1"
+                    className="text-xs text-red-300 hover:text-red-500 underline mt-1"
                     onClick={handleLogout}
                   >
                     Logout
@@ -158,7 +159,12 @@ const AdminDashboard = () => {
         </div>
 
         {/* Desktop Title */}
-        <h1 className="hidden md:block text-3xl font-bold mb-6">Admin Dashboard</h1>
+        <h1 className="hidden md:block text-3xl font-bold mb-2">Admin Dashboard</h1>
+
+        {/* Subtitle / Additional Text */}
+        <p className="hidden md:block text-gray-600 mb-6">
+          Welcome back, Admin 👋 — here you can manage feedback, developers, and track system activity.
+        </p>
 
         <div className="space-y-6 flex-1 overflow-auto">
           <Outlet />
