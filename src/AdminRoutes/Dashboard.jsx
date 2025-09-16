@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { motion } from "framer-motion";
 import { FaClipboardList, FaTasks, FaUserSlash, FaUsers } from "react-icons/fa";
+import api from "../api"; // ✅ use shared axios instance
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -13,31 +13,21 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [filteredFeedbacks, setFilteredFeedbacks] = useState([]);
   const [developers, setDevelopers] = useState([]);
-  const [filterType, setFilterType] = useState("all"); // "all", "assigned", "unassigned", "developers"
-
-  const token = JSON.parse(localStorage.getItem("currentUser"))?.token;
+  const [filterType, setFilterType] = useState("all");
 
   useEffect(() => {
     const fetchStats = async () => {
-      if (!token) return;
       try {
-        const feedbackRes = await axios.get(
-          "http://localhost:3000/api/admin/feedback/feedbacks",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        const devRes = await axios.get(
-          "http://localhost:3000/api/admin/collaboratorRoute/collaborator",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const feedbackRes = await api.get("/admin/feedback/feedbacks");
+        const devRes = await api.get("/admin/collaboratorRoute/collaborator");
 
         const feedbacks = feedbackRes.data;
         const devs = devRes.data;
 
         setStats({
           totalFeedbacks: feedbacks.length,
-          assignedFeedbacks: feedbacks.filter(f => f.assignedTo).length,
-          unassignedFeedbacks: feedbacks.filter(f => !f.assignedTo).length,
+          assignedFeedbacks: feedbacks.filter((f) => f.assignedTo).length,
+          unassignedFeedbacks: feedbacks.filter((f) => !f.assignedTo).length,
           totalDevelopers: devs.length,
         });
 
@@ -52,22 +42,20 @@ const Dashboard = () => {
     };
 
     fetchStats();
-  }, [token]);
+  }, []);
 
   const fetchFilteredFeedbacks = async (type) => {
-    if (!token) return;
-
     if (type === "developers") {
       setFilterType("developers");
       return;
     }
 
-    let url = "http://localhost:3000/api/admin/feedback/feedbacks";
+    let url = "/admin/feedback/feedbacks";
     if (type === "assigned") url += "?assignedTo=assigned";
     else if (type === "unassigned") url += "?assignedTo=null";
 
     try {
-      const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await api.get(url);
       setFilteredFeedbacks(res.data);
       setFilterType(type);
     } catch (err) {

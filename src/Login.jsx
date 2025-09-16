@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { motion } from "framer-motion";
+import api from "./api"; // ✅ shared axios instance
 
 export default function Login() {
   const [role, setRole] = useState("admin");
@@ -18,24 +18,14 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const endpoint =
-        role === "admin"
-          ? "http://localhost:3000/api/auth/adminlogin"
-          : "http://localhost:3000/api/auth/collaboratorlogin";
+      const endpoint = role === "admin" ? "/auth/adminlogin" : "/auth/collaboratorlogin";
 
-      const response = await axios.post(endpoint, { name, password });
-      const { token, role: userRole, name: userName, developerId, progress } =
-        response.data;
+      const response = await api.post(endpoint, { name, password });
+      const { token, role: userRole, name: userName, developerId, progress } = response.data;
 
       localStorage.setItem(
         "currentUser",
-        JSON.stringify({
-          token,
-          role: userRole,
-          name: userName,
-          developerId,
-          progress,
-        })
+        JSON.stringify({ token, role: userRole, name: userName, developerId, progress })
       );
 
       if (userRole === "admin") navigate("/admin");
@@ -62,28 +52,17 @@ export default function Login() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <h2 className="text-3xl font-extrabold text-gray-800 mb-1">
-            Feedback Hub
-          </h2>
+          <h2 className="text-3xl font-extrabold text-gray-800 mb-1">Feedback Hub</h2>
           <p className="text-gray-600 text-sm mb-2">Collaborative Platform</p>
           <h3 className="text-xl font-bold text-gray-800 mb-1">Login</h3>
           <p className="text-gray-500 text-sm">Access your workspace</p>
         </motion.div>
 
         {/* Form */}
-        <motion.form
-          onSubmit={handleLogin}
-          autoComplete="off"
-          className="space-y-5"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-        >
+        <motion.form onSubmit={handleLogin} autoComplete="off" className="space-y-5">
           {/* Role Selector */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Role
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
             <div className="flex gap-2 bg-gray-100 rounded-xl p-1">
               {["admin", "collaborator"].map((r) => (
                 <button
@@ -104,9 +83,7 @@ export default function Login() {
 
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Name
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
             <input
               type="text"
               value={name}
@@ -119,9 +96,7 @@ export default function Login() {
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
             <input
               type="password"
               value={password}
@@ -139,9 +114,7 @@ export default function Login() {
             whileHover={!isLoading ? { scale: 1.05 } : {}}
             whileTap={!isLoading ? { scale: 0.97 } : {}}
             className={`w-full py-3 rounded-xl font-bold text-white transition-all shadow-lg ${
-              isLoading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-purple-600 hover:bg-purple-700"
+              isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-purple-600 hover:bg-purple-700"
             }`}
           >
             {isLoading ? "Logging in..." : "Login"}

@@ -56,9 +56,9 @@ export default function CopyRights() {
         <div className="space-y-3">
           <h2 className="text-white font-semibold">Connect</h2>
           <div className="flex gap-5 mt-2">
-            <FaTwitter className="text-gray-400 hover:text-white transition-transform transform hover:scale-125 cursor-pointer text-2xl" />
-            <FaGithub className="text-gray-400 hover:text-white transition-transform transform hover:scale-125 cursor-pointer text-2xl" />
-            <FaLinkedin className="text-gray-400 hover:text-white transition-transform transform hover:scale-125 cursor-pointer text-2xl" />
+           <a href="https://x.com/EbongValentineX?t=lZgBjvFsb6Yn4IdAnfCYew&s=09"> <FaTwitter className="text-gray-400 hover:text-white transition-transform transform hover:scale-125 cursor-pointer text-2xl" /></a>
+            <a href="https://github.com/Val242"><FaGithub className="text-gray-400 hover:text-white transition-transform transform hover:scale-125 cursor-pointer text-2xl" /></a>
+              <a href="https://www.linkedin.com/in/ebong-valentine-2b1157322?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"><FaLinkedin className="text-gray-400 hover:text-white transition-transform transform hover:scale-125 cursor-pointer text-2xl" /></a>
           </div>
         </div>
       </div>

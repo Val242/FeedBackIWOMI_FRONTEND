@@ -5,9 +5,9 @@ Exercise: SaaS Improved UI with Routing + Filtered Feedback Table + Progress Upd
 */
 
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { fetchCollaboratorFeedbacks, updateCollaboratorFeedback } from "./api";
 
 export default function CollaboratorDashboard() {
   const navigate = useNavigate();
@@ -24,23 +24,20 @@ export default function CollaboratorDashboard() {
   const [filterStatus, setFilterStatus] = useState("all");
   const notificationsRef = useRef(null);
 
-  const token = JSON.parse(localStorage.getItem("currentUser"))?.token;
-
   useEffect(() => {
     const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
-    if (!currentUser?.developerId || !token) { 
+    const token = currentUser?.token;
+
+    if (!currentUser?.developerId || !token) {
       navigate("/login", { replace: true });
-      return; 
+      return;
     }
     setUser(currentUser);
 
     const fetchFeedbacks = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(
-          `http://localhost:3000/api/collaborator/feedbacks/${currentUser.developerId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const res = await fetchCollaboratorFeedbacks(currentUser.developerId);
 
         const feedbackArray = res.data.feedbacks || [];
         const statusMap = {};
@@ -66,15 +63,15 @@ export default function CollaboratorDashboard() {
         const notificationsArray = res.data.notifications || [];
         setNotifications(notificationsArray);
         setUnreadCount(notificationsArray.filter(n => !n.read).length);
-      } catch (err) { 
-        console.error("Error fetching feedbacks:", err); 
-      } finally { 
-        setLoading(false); 
+      } catch (err) {
+        console.error("Error fetching feedbacks:", err.response?.data || err);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchFeedbacks();
-  }, [navigate, token]);
+  }, [navigate]);
 
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
@@ -94,14 +91,10 @@ export default function CollaboratorDashboard() {
     setFeedbackStatus(prev => ({ ...prev, [feedbackId]: newStatus }));
 
     try {
-      await axios.put(
-        `http://localhost:3000/api/collaborator/feedbacks/feedbacks/${feedbackId}`,
-        { progress: newProgress, status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await updateCollaboratorFeedback(feedbackId, { progress: newProgress, status: newStatus });
       console.log(`Feedback ${feedbackId} updated to ${newProgress}% with status ${newStatus}`);
     } catch (err) {
-      console.error("Error updating feedback:", err);
+      console.error("Error updating feedback:", err.response?.data || err);
     }
   };
 
@@ -119,8 +112,7 @@ export default function CollaboratorDashboard() {
   );
 
   return (
-    <motion.div
-      className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 font-sans"
+    <motion.div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 font-sans"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
@@ -155,8 +147,7 @@ export default function CollaboratorDashboard() {
       </header>
 
       {/* Summary Cards */}
-      <motion.div
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6"
+      <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -165,9 +156,7 @@ export default function CollaboratorDashboard() {
           { key: "inProgress", label: "In Progress", color: "yellow", icon: "⏳" },
           { key: "completed", label: "Completed", color: "green", icon: "✅" },
           { key: "overdue", label: "Overdue", color: "red", icon: "⚠️" }].map(({ key, label, color, icon }) => (
-          <motion.div 
-            key={key} 
-            onClick={() => handleCardClick(key)} 
+          <motion.div key={key} onClick={() => handleCardClick(key)}
             className={`bg-gradient-to-r from-${color}-100 to-${color}-200 p-6 rounded-2xl shadow-lg hover:scale-105 transform transition-transform cursor-pointer`}
             whileHover={{ scale: 1.05 }}
           >
@@ -178,9 +167,8 @@ export default function CollaboratorDashboard() {
         ))}
       </motion.div>
 
-      {/* Filtered Feedback Table */}
-      <motion.div 
-        className="bg-white rounded-2xl border border-gray-200 mx-6 overflow-hidden shadow-lg mb-12"
+      {/* Feedback Table */}
+      <motion.div className="bg-white rounded-2xl border border-gray-200 mx-6 overflow-hidden shadow-lg mb-12"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
@@ -198,7 +186,6 @@ export default function CollaboratorDashboard() {
             <tbody>
               {filteredFeedbacks.map(f => (
                 <tr key={f._id} className="border-b border-gray-100 hover:shadow-md hover:bg-gray-50 transition-all">
-            
                   <td className="px-6 py-4">{f.name}</td>
                   <td className="px-6 py-4 max-w-xs truncate">{f.message}</td>
                   <td className="px-6 py-4">
@@ -221,9 +208,7 @@ export default function CollaboratorDashboard() {
                   <td className="px-6 py-4 text-gray-500 text-sm">{new Date(f.timestamp).toLocaleDateString()}</td>
                   <td className="px-6 py-4">
                     {f.image && (
-                      <img
-                        src={f.image}
-                        alt="Feedback"
+                      <img src={f.image} alt="Feedback"
                         className="h-16 w-16 object-cover rounded-md cursor-pointer shadow-sm hover:shadow-lg hover:scale-105 transition-transform duration-200"
                         onClick={() => setModalImage(f.image)}
                       />

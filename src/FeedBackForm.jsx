@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { submitFeedback } from "./api"; // ✅ import api helper
 
 function FeedBackForm() {
   const [formData, setFormData] = useState({
@@ -8,7 +8,7 @@ function FeedBackForm() {
     feedbackType: "bug",
     customType: "",
     message: "",
-    image: "", // single image now
+    image: "", // single image
     criticality: "low",
   });
 
@@ -57,18 +57,16 @@ function FeedBackForm() {
       data.append("email", formData.email);
       data.append(
         "type",
-        formData.feedbackType === "other" ? formData.customType : formData.feedbackType
+        formData.feedbackType === "other"
+          ? formData.customType
+          : formData.feedbackType
       );
       data.append("message", formData.message);
       data.append("criticality", formData.criticality);
 
       if (formData.image) data.append("image", formData.image);
-      
-     // else console.log("No Image")
 
-      await axios.post("http://localhost:3000/api/auth/registerFeedback", data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await submitFeedback(data); // ✅ use helper
 
       alert("✅ Feedback submitted successfully!");
       setFormData({

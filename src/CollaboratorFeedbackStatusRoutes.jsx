@@ -5,8 +5,8 @@
 */
 
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { motion } from "framer-motion";
+import { fetchCollaboratorFeedbacks } from "./api"; // import from api.js
 
 export default function CollaboratorFeedbackStatusRoutes({ developerId, status = "all" }) {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -14,26 +14,17 @@ export default function CollaboratorFeedbackStatusRoutes({ developerId, status =
   const [error, setError] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
 
-  const token = JSON.parse(localStorage.getItem("currentUser"))?.token;
-
   useEffect(() => {
-    if (!developerId || !token) {
-      console.log("Missing developerId or token");
+    if (!developerId) {
+      console.log("Missing developerId");
       return;
     }
 
     const fetchFeedbacks = async () => {
       setLoading(true);
       try {
-        // Encode the status to handle spaces
         const query = status !== "all" ? `?status=${encodeURIComponent(status)}` : "";
-        const url = `http://localhost:3000/api/collaborator/feedbacks/${developerId}${query}`;
-        console.log("Fetching feedbacks from URL:", url);
-
-        const res = await axios.get(url, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
+        const res = await fetchCollaboratorFeedbacks(developerId + query);
         console.log("Received feedbacks data:", res.data.feedbacks);
         setFeedbacks(res.data.feedbacks || []);
       } catch (err) {
@@ -45,7 +36,7 @@ export default function CollaboratorFeedbackStatusRoutes({ developerId, status =
     };
 
     fetchFeedbacks();
-  }, [developerId, status, token]);
+  }, [developerId, status]);
 
   if (loading) return <p className="text-gray-500">Loading feedbacks...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
