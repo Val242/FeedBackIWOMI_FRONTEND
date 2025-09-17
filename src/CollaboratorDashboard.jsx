@@ -12,10 +12,8 @@ import { fetchCollaboratorFeedbacks, updateCollaboratorFeedback } from "./api";
 export default function CollaboratorDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [summaryStats, setSummaryStats] = useState({ total: 0, inProgress: 0, completed: 0, overdue: 0 });
   const [feedbackList, setFeedbackList] = useState([]);
-  const [feedbackStatus, setFeedbackStatus] = useState({});
-  const [feedbackProgress, setFeedbackProgress] = useState({});
+  const [summaryStats, setSummaryStats] = useState({ total: 0, inProgress: 0, completed: 0, overdue: 0 });
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -24,6 +22,7 @@ export default function CollaboratorDashboard() {
   const [filterStatus, setFilterStatus] = useState("all");
   const notificationsRef = useRef(null);
 
+  // Fetch feedbacks and notifications on mount
   useEffect(() => {
     const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
     const token = currentUser?.token;
@@ -38,15 +37,16 @@ export default function CollaboratorDashboard() {
       setLoading(true);
       try {
         const res = await fetchCollaboratorFeedbacks(currentUser.developerId);
-
         const feedbackArray = res.data.feedbacks || [];
-        const statusMap = {};
-        const progressMap = {};
-        let total = feedbackArray.length, inProgress = 0, completed = 0, overdue = 0;
+        setFeedbackList(feedbackArray);
+
+        // Calculate summary stats
+        let total = feedbackArray.length,
+            inProgress = 0,
+            completed = 0,
+            overdue = 0;
 
         feedbackArray.forEach(f => {
-          statusMap[f._id] = f.status || "New";
-          progressMap[f._id] = f.progress || 0;
           switch (f.status) {
             case "In Progress": inProgress++; break;
             case "Resolved": completed++; break;
@@ -54,12 +54,9 @@ export default function CollaboratorDashboard() {
             default: break;
           }
         });
-
-        setFeedbackList(feedbackArray);
-        setFeedbackStatus(statusMap);
-        setFeedbackProgress(progressMap);
         setSummaryStats({ total, inProgress, completed, overdue });
 
+        // Notifications
         const notificationsArray = res.data.notifications || [];
         setNotifications(notificationsArray);
         setUnreadCount(notificationsArray.filter(n => !n.read).length);
@@ -73,31 +70,54 @@ export default function CollaboratorDashboard() {
     fetchFeedbacks();
   }, [navigate]);
 
+  // Toggle notifications panel
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
     if (!showNotifications) setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     setUnreadCount(0);
   };
 
+  // Filter feedbacks by status
   const handleCardClick = statusKey => {
     const map = { total: "all", inProgress: "In Progress", completed: "Resolved", overdue: "Overdue" };
     setFilterStatus(map[statusKey] || "all");
   };
 
+  // Update feedback progress and status
   const handleProgressChange = async (feedbackId, newProgress) => {
-    setFeedbackProgress(prev => ({ ...prev, [feedbackId]: newProgress }));
-
     const newStatus = newProgress >= 100 ? "Resolved" : newProgress > 0 ? "In Progress" : "New";
-    setFeedbackStatus(prev => ({ ...prev, [feedbackId]: newStatus }));
+
+    // Update feedbackList state immediately
+    setFeedbackList(prevList =>
+      prevList.map(f => f._id === feedbackId ? { ...f, progress: newProgress, status: newStatus } : f)
+    );
+
+    // Update summary stats
+    const updatedList = feedbackList.map(f => f._id === feedbackId ? { ...f, progress: newProgress, status: newStatus } : f);
+    let total = updatedList.length,
+        inProgress = 0,
+        completed = 0,
+        overdue = 0;
+    updatedList.forEach(f => {
+      switch (f.status) {
+        case "In Progress": inProgress++; break;
+        case "Resolved": completed++; break;
+        case "Overdue": overdue++; break;
+        default: break;
+      }
+    });
+    setSummaryStats({ total, inProgress, completed, overdue });
 
     try {
       await updateCollaboratorFeedback(feedbackId, { progress: newProgress, status: newStatus });
       console.log(`Feedback ${feedbackId} updated to ${newProgress}% with status ${newStatus}`);
     } catch (err) {
       console.error("Error updating feedback:", err.response?.data || err);
+      // Optionally rollback state on failure
     }
   };
 
+  // Filtered feedbacks
   const filteredFeedbacks = feedbackList.filter(f => filterStatus === "all" ? true : f.status === filterStatus);
 
   if (loading) return (
@@ -192,17 +212,20 @@ export default function CollaboratorDashboard() {
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                       f.status === "In Progress" ? "bg-yellow-100 text-yellow-600" :
                       f.status === "Resolved" ? "bg-green-100 text-green-600" :
-                      "bg-red-100 text-red-600"
+                      f.status === "Overdue" ? "bg-red-100 text-red-600" :
+                      "bg-gray-100 text-gray-600"
                     }`}>{f.status}</span>
                   </td>
                   <td className="px-6 py-4 w-52">
                     <div className="flex items-center gap-3">
-                      <input type="range" min={0} max={100} value={feedbackProgress[f._id] || 0}
-                        onChange={e => setFeedbackProgress(prev => ({ ...prev, [f._id]: Number(e.target.value) }))}
+                      <input type="range" min={0} max={100} value={f.progress || 0}
+                        onChange={e => setFeedbackList(prev =>
+                          prev.map(feedback => feedback._id === f._id ? { ...feedback, progress: Number(e.target.value) } : feedback)
+                        )}
                         onMouseUp={e => handleProgressChange(f._id, Number(e.target.value))}
                         onTouchEnd={e => handleProgressChange(f._id, Number(e.target.value))}
                         className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-blue-500" />
-                      <span className="text-gray-500 text-xs w-10 text-right">{feedbackProgress[f._id] || 0}%</span>
+                      <span className="text-gray-500 text-xs w-10 text-right">{f.progress || 0}%</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-gray-500 text-sm">{new Date(f.timestamp).toLocaleDateString()}</td>
