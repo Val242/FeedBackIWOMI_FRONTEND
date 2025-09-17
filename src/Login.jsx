@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import api from "./api"; // ✅ shared axios instance
 
 export default function Login() {
   const [role, setRole] = useState("admin");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -94,17 +96,24 @@ export default function Login() {
             />
           </div>
 
-          {/* Password */}
-          <div>
+          {/* Password with eye icon toggle */}
+          <div className="relative">
             <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all hover:shadow-md bg-gray-50"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all hover:shadow-md bg-gray-50 pr-12"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+            >
+              {showPassword ? <AiOutlineEyeInvisible size={20} /> : <AiOutlineEye size={20} />}
+            </button>
           </div>
 
           {/* Submit */}
