@@ -33,7 +33,7 @@ function Header() {
           {["Home", "Connection","Submit Feedback" ].map((item, index) => (
             <motion.div
               key={index}
-              className="cursor-pointer text-gray-700 ml-56  hover:text-indigo-700 transition-colors duration-300 font-semibold"
+              className="cursor-pointer text-gray-700   hover:text-indigo-700 transition-colors duration-300 font-semibold"
               onClick={() =>
                 navigate(
                   item === "Home" || item === "Submit Feedback" ? "/feedbackForm" : "/login"
